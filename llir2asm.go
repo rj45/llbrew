@@ -3,10 +3,9 @@ package main
 import (
 	"log"
 	"os"
-	"path"
-	"strings"
 
 	"github.com/rj45/llir2asm/arch"
+	"github.com/rj45/llir2asm/asm"
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/ir/op"
 	"github.com/rj45/llir2asm/ir/typ"
@@ -39,8 +38,6 @@ func main() {
 	optspeed := 2
 
 	filename := os.Args[1]
-
-	name := strings.TrimSuffix(path.Base(filename), path.Ext(filename))
 
 	buf, err := llvm.NewMemoryBufferFromFile(filename)
 	if err != nil {
@@ -117,7 +114,7 @@ func main() {
 	prog := &ir.Program{}
 
 	pkg := &ir.Package{
-		Name: name,
+		Name: "main",
 	}
 
 	prog.AddPackage(pkg)
@@ -198,7 +195,9 @@ func main() {
 		}
 	}
 
-	prog.Emit(os.Stdout, ir.SSAString{})
+	// prog.Emit(os.Stdout, ir.SSAString{})
+
+	asm.Emit(os.Stdout, asm.CustomASM{}, prog)
 
 	// mod.Dump()
 }
