@@ -104,9 +104,9 @@ func (emit *Emitter) fn(fn *ir.Func) {
 	res := fn.Sig.Function().Results
 	resstr := ""
 	if len(res) == 1 {
-		resstr = res[0].String()
+		resstr = " " + res[0].String()
 	} else if len(res) > 1 {
-		resstr = "("
+		resstr = " ("
 		for i, r := range res {
 			if i != 0 {
 				resstr += ","

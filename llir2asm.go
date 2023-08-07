@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/ir/op"
 	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llir2asm/regalloc"
+	"github.com/rj45/llir2asm/regalloc/verify"
 	"github.com/rj45/llir2asm/xform"
 	"tinygo.org/x/go-llvm"
 
@@ -117,6 +120,8 @@ func main() {
 		Name: "main",
 	}
 
+	mod.Dump()
+
 	prog.AddPackage(pkg)
 
 	for glob := mod.FirstGlobal(); !glob.IsNil(); glob = llvm.NextGlobal(glob) {
@@ -133,10 +138,19 @@ func main() {
 		valuemap := make(map[llvm.Value]*ir.Value)
 		instrmap := make(map[llvm.Value]*ir.Instr)
 
+		first := true
 		for blk := fn.FirstBasicBlock(); !blk.IsNil(); blk = llvm.NextBasicBlock(blk) {
-
 			nblk := nfn.NewBlock()
 			blkmap[blk] = nblk
+
+			if first {
+				first = false
+				for param := fn.FirstParam(); !param.IsNil(); param = llvm.NextParam(param) {
+					pval := nfn.NewValue(convertType(param.Type()))
+					nblk.AddDef(pval)
+					valuemap[param] = pval
+				}
+			}
 
 			nfn.InsertBlock(-1, nblk)
 
@@ -169,13 +183,25 @@ func main() {
 					oval := valuemap[operand]
 					if oval == nil {
 						if operand.IsConstant() {
-							if operand.Type().TypeKind() == llvm.IntegerTypeKind {
-								ninstr.InsertArg(-1, nfn.ValueFor(convertType(operand.Type()), operand.SExtValue()))
-							} else {
-								panic("todo: other constant types")
+							opertyp := operand.Type()
+							ntyp := convertType(opertyp)
+							switch opertyp.TypeKind() {
+							case llvm.IntegerTypeKind:
+								ninstr.InsertArg(-1, nfn.ValueFor(ntyp, operand.SExtValue()))
+							case llvm.FunctionTypeKind:
+								panic(operand.Name())
+							case llvm.PointerTypeKind:
+								if ntyp.Pointer().Element.Kind() == typ.FunctionKind {
+									otherfn := pkg.Func(operand.Name())
+									ninstr.InsertArg(0, nfn.ValueFor(ntyp.Pointer().Element, otherfn))
+								}
+							default:
+								log.Panicf("todo: other constant types: %s", ntyp)
 							}
+
 						} else {
-							panic("todo: other operand types")
+
+							log.Panicf("todo: other operand types %d", operand.IntrinsicID())
 						}
 					} else {
 						ninstr.InsertArg(-1, oval)
@@ -185,6 +211,8 @@ func main() {
 		}
 	}
 
+	prog.Emit(os.Stdout, ir.SSAString{})
+
 	arch.SetArch("rj32")
 	for _, pkg := range prog.Packages() {
 		for _, fn := range pkg.Funcs() {
@@ -192,10 +220,36 @@ func main() {
 			xform.Transform(xform.Simplification, fn)
 			xform.Transform(xform.Lowering, fn)
 			xform.Transform(xform.Legalization, fn)
+
+			ra := regalloc.NewRegAlloc(fn)
+			err = ra.Allocate()
+			// if *debug {
+			// 	regalloc.WriteGraphvizCFG(ra)
+			// 	regalloc.DumpLivenessChart(ra)
+			// 	regalloc.WriteGraphvizInterferenceGraph(ra)
+			// 	regalloc.WriteGraphvizLivenessGraph(ra)
+			// }
+			if err != nil {
+				log.Fatal(err)
+			}
+			errs := verify.Verify(fn)
+			for _, err := range errs {
+				log.Printf("verification error: %s\n", err)
+			}
+			if len(errs) > 0 {
+
+				log.Fatal("verification failed")
+			}
+
+			xform.Transform(xform.CleanUp, fn)
+			xform.Transform(xform.Finishing, fn)
 		}
 	}
 
 	// prog.Emit(os.Stdout, ir.SSAString{})
+
+	fmt.Println()
+	fmt.Println()
 
 	asm.Emit(os.Stdout, asm.CustomASM{}, prog)
 

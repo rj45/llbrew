@@ -66,13 +66,13 @@ func (fn Function) String() string {
 	}
 	rstr := ""
 	if len(fn.Results) == 1 {
-		rstr = fn.Results[0].String()
+		rstr = " " + fn.Results[0].String()
 	} else {
 		strs := make([]string, len(fn.Params))
 		for i, param := range fn.Params {
 			strs[i] = param.String()
 		}
-		rstr = "(" + strings.Join(strs, ",") + ")"
+		rstr = " (" + strings.Join(strs, ",") + ")"
 	}
 	return "func(" + strings.Join(strs, ",") + ")" + rstr
 }
