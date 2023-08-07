@@ -1,2 +1,12 @@
+github.com/dmarkham/enumer v1.5.8 h1:fIF11F9l5jyD++YYvxcSH5WgHfeaSGPaN/T4kOQ4qEM=
+github.com/dmarkham/enumer v1.5.8/go.mod h1:d10o8R3t/gROm2p3BXqTkMt2+HMuxEmWCXzorAruYak=
+github.com/pascaldekloe/name v1.0.0 h1:n7LKFgHixETzxpRv2R77YgPUFo85QHGZKrdaYm7eY5U=
+github.com/pascaldekloe/name v1.0.0/go.mod h1:Z//MfYJnH4jVpQ9wkclwu2I2MkHmXTlT9wR5UZScttM=
+golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 h1:6zppjxzCulZykYSLyVDYbneBfbaBIQPYMevg0bEwv2s=
+golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
+golang.org/x/sys v0.5.0 h1:MUK/U/4lj1t1oPg0HfuXDN/Z1wv31ZJ/YcPiGccS4DU=
+golang.org/x/sys v0.5.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/tools v0.1.12 h1:VveCTK38A2rkS8ZqFY25HIDFscX5X9OoEhJd3quQmXU=
+golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
 tinygo.org/x/go-llvm v0.0.0-20230505123812-8e7ec80422a4 h1:IvEgwcYCjmdIYwRu5JN1D63j0MN+bjUsj3VfnReyC6M=
 tinygo.org/x/go-llvm v0.0.0-20230505123812-8e7ec80422a4/go.mod h1:GFbusT2VTA4I+l4j80b17KFK+6whv69Wtny5U+T8RR0=
