@@ -6,10 +6,21 @@ import (
 	"path"
 	"strings"
 
+	"github.com/rj45/llir2asm/arch"
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/ir/op"
 	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llir2asm/xform"
 	"tinygo.org/x/go-llvm"
+
+	_ "github.com/rj45/llir2asm/arch/rj32"
+
+	_ "github.com/rj45/llir2asm/xform/cleanup"
+	_ "github.com/rj45/llir2asm/xform/elaboration"
+	_ "github.com/rj45/llir2asm/xform/finishing"
+	_ "github.com/rj45/llir2asm/xform/legalization"
+	_ "github.com/rj45/llir2asm/xform/lowering"
+	_ "github.com/rj45/llir2asm/xform/simplification"
 )
 
 func init() {
@@ -174,6 +185,16 @@ func main() {
 					}
 				}
 			}
+		}
+	}
+
+	arch.SetArch("rj32")
+	for _, pkg := range prog.Packages() {
+		for _, fn := range pkg.Funcs() {
+			xform.Transform(xform.Elaboration, fn)
+			xform.Transform(xform.Simplification, fn)
+			xform.Transform(xform.Lowering, fn)
+			xform.Transform(xform.Legalization, fn)
 		}
 	}
 

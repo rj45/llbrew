@@ -1,23 +1,20 @@
 ; ModuleID = 'add.c'
 source_filename = "add.c"
-target datalayout = "e-m:e-p:32:32-i64:64-n32-S128"
-target triple = "riscv32-unknown-unknown-elf"
+target datalayout = "e-m:e-p:16:16-i32:16-i64:16-f32:16-f64:16-a:8-n8:16-S16"
+target triple = "msp430-unknown-unknown-elf"
 
 ; Function Attrs: noinline nounwind optnone
-define dso_local i32 @main() #0 {
-  %1 = alloca i32, align 4
-  store i32 42, i32* %1, align 4
-  %2 = load i32, i32* %1, align 4
-  ret i32 %2
+define dso_local i16 @main() #0 {
+  %1 = alloca i16, align 2
+  store i16 42, i16* %1, align 2
+  %2 = load i16, i16* %1, align 2
+  ret i16 %2
 }
 
-attributes #0 = { noinline nounwind optnone "frame-pointer"="all" "min-legal-vector-width"="0" "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-features"="+relax,-save-restore" }
+attributes #0 = { noinline nounwind optnone "frame-pointer"="none" "min-legal-vector-width"="0" "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
 
-!llvm.module.flags = !{!0, !1, !2, !3}
-!llvm.ident = !{!4}
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
 
-!0 = !{i32 1, !"wchar_size", i32 4}
-!1 = !{i32 1, !"target-abi", !"ilp32"}
-!2 = !{i32 7, !"frame-pointer", i32 2}
-!3 = !{i32 1, !"SmallDataLimit", i32 8}
-!4 = !{!"Apple clang version 14.0.3 (clang-1403.0.22.14.1)"}
+!0 = !{i32 1, !"wchar_size", i32 2}
+!1 = !{!"Apple clang version 14.0.3 (clang-1403.0.22.14.1)"}

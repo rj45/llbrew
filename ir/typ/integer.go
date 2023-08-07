@@ -1,6 +1,10 @@
 package typ
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/rj45/llir2asm/sizes"
+)
 
 type Integer struct {
 	Bits int
@@ -33,4 +37,8 @@ func IntegerType(bits int) Type {
 
 func (i Integer) String() string {
 	return "i" + strconv.Itoa(i.Bits)
+}
+
+func IntegerWordType() Type {
+	return DefaultContext.IntegerType(sizes.WordSize() * sizes.MinAddressableBits())
 }
