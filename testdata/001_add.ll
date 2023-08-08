@@ -1,5 +1,5 @@
-; ModuleID = 'add.c'
-source_filename = "add.c"
+; ModuleID = '001_add.c'
+source_filename = "001_add.c"
 target datalayout = "e-m:e-p:16:16-i32:16-i64:16-f32:16-f64:16-a:8-n8:16-S16"
 target triple = "msp430-unknown-unknown-elf"
 

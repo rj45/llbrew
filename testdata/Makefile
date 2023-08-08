@@ -1,4 +1,4 @@
-TESTS = simple.ll add.ll
+TESTS = 000_simple.ll 001_add.ll
 
 all: $(TESTS)
 
