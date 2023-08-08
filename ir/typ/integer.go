@@ -6,25 +6,14 @@ import (
 	"github.com/rj45/llir2asm/sizes"
 )
 
-type Integer struct {
-	Bits int
-}
+type Integer int
 
 func (ctx *Context) Integer(typ Type) Integer {
-	if typ.Kind() != IntegerKind {
-		return Integer{}
-	}
-	return ctx.integer[typ.index()]
+	return Integer(typ.index())
 }
 
 func (ctx *Context) IntegerType(bits int) Type {
-	for index, value := range ctx.integer {
-		if value.Bits == bits {
-			return typeFor(IntegerKind, index)
-		}
-	}
-	ctx.integer = append(ctx.integer, Integer{bits})
-	return typeFor(IntegerKind, len(ctx.integer)-1)
+	return typeFor(IntegerKind, bits)
 }
 
 func (t Type) Integer() Integer {
@@ -36,7 +25,11 @@ func IntegerType(bits int) Type {
 }
 
 func (i Integer) String() string {
-	return "i" + strconv.Itoa(i.Bits)
+	return "i" + strconv.Itoa(int(i))
+}
+
+func (i Integer) Bits() int {
+	return int(i)
 }
 
 func IntegerWordType() Type {

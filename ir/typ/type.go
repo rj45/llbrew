@@ -1,5 +1,7 @@
 package typ
 
+import "github.com/rj45/llir2asm/sizes"
+
 type Type uint32
 
 func (t Type) Kind() Kind {
@@ -37,6 +39,5 @@ func (t Type) String() string {
 }
 
 func StringType() Type {
-	panic("fixme")
-	return 0
+	return PointerType(IntegerType(sizes.MinAddressableBits()), 0)
 }

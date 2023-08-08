@@ -12,10 +12,16 @@ func (ctx *Context) Function(typ Type) Function {
 	if typ.Kind() != FunctionKind {
 		return Function{}
 	}
+
+	ctx.lock.RLock()
+	defer ctx.lock.RUnlock()
 	return ctx.function[typ.index()]
 }
 
 func (ctx *Context) FunctionType(results []Type, params []Type, isVarArg bool) Type {
+	ctx.lock.Lock()
+	defer ctx.lock.Unlock()
+
 next:
 	for index, fn := range ctx.function {
 		if len(fn.Results) != len(results) {

@@ -211,7 +211,7 @@ func (emit *Emitter) global(glob *ir.Global) {
 	}
 	emit.line("%s:", emit.fmter.GlobalLabel(glob))
 	if glob.Value == nil {
-		size := glob.Type.Integer().Bits / sizes.MinAddressableBits()
+		size := glob.Type.Integer().Bits() / sizes.MinAddressableBits()
 		emit.line("%s", emit.fmter.Reserve(int(size)))
 	} else if str, ok := ir.StringValue(glob.Value); ok {
 		emit.line("%s", emit.fmter.Word(emit.fmter.PCRelAddress(int(sizes.WordSize()*2))))

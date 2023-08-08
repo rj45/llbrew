@@ -8,6 +8,9 @@ type Pointer struct {
 }
 
 func (ctx *Context) Pointer(typ Type) Pointer {
+	ctx.lock.RLock()
+	defer ctx.lock.RUnlock()
+
 	if typ.Kind() != PointerKind {
 		return Pointer{}
 	}
@@ -15,6 +18,9 @@ func (ctx *Context) Pointer(typ Type) Pointer {
 }
 
 func (ctx *Context) PointerType(elem Type, addrspace int) Type {
+	ctx.lock.Lock()
+	defer ctx.lock.Unlock()
+
 	for index, value := range ctx.pointer {
 		if value.Element == elem && value.AddrSpace == addrspace {
 			return typeFor(PointerKind, index)
