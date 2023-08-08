@@ -22,6 +22,7 @@ func main() {
 	var outfile = flag.String("o", "-", "Output assembly file")
 	var llfile = flag.String("ll", "", "Dump optimized llvm IR to file")
 	var irfile = flag.String("ir", "", "Dump pre-optimized llir2asm IR to file")
+	var dumpssa = flag.String("dumpssa", "", "Dump ssa.html for specified function")
 
 	flag.Parse()
 	c := compile.Compiler{}
@@ -49,6 +50,8 @@ func main() {
 
 	c.DumpIR = createFile(*irfile)
 	defer c.DumpIR.Close()
+
+	c.DumpSSA = *dumpssa
 
 	prog, err := c.Compile(flag.Args()[0])
 	if err != nil {

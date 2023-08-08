@@ -11,3 +11,5 @@ If you want to help, please get in touch.
 # License
 
 MIT
+
+The `html` package has a heavily modified version of the Go compiler's ssa.html dumper, and is under a [BSD style license](./html/LICENSE).

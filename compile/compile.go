@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 
 	"github.com/rj45/llir2asm/arch"
+	"github.com/rj45/llir2asm/html"
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/ir/op"
 	"github.com/rj45/llir2asm/ir/typ"
@@ -38,8 +40,9 @@ type Compiler struct {
 	OptSpeed int
 	OptSize  int
 
-	DumpLL io.WriteCloser
-	DumpIR io.WriteCloser
+	DumpLL  io.WriteCloser
+	DumpIR  io.WriteCloser
+	DumpSSA string
 
 	ctx       llvm.Context
 	mod       llvm.Module
@@ -295,12 +298,28 @@ func (c *Compiler) convertOperands(fn llvm.Value) {
 
 func (c *Compiler) transformProgram() error {
 	arch.SetArch("rj32")
+
 	for _, pkg := range c.prog.Packages() {
 		for _, fn := range pkg.Funcs() {
+			var w dumper = nopDumper{}
+			if c.DumpSSA != "" && strings.Contains(fn.FullName, c.DumpSSA) {
+				w = html.NewHTMLWriter("ssa.html", fn)
+			}
+			defer w.Close()
+
+			w.WritePhase("initial", "initial")
+
 			xform.Transform(xform.Elaboration, fn)
+			w.WritePhase("elaboration", "elaboration")
+
 			xform.Transform(xform.Simplification, fn)
+			w.WritePhase("simplification", "simplification")
+
 			xform.Transform(xform.Lowering, fn)
+			w.WritePhase("lowering", "lowering")
+
 			xform.Transform(xform.Legalization, fn)
+			w.WritePhase("legalization", "legalization")
 
 			ra := regalloc.NewRegAlloc(fn)
 			err := ra.Allocate()
@@ -318,12 +337,15 @@ func (c *Compiler) transformProgram() error {
 				log.Printf("verification error: %s\n", err)
 			}
 			if len(errs) > 0 {
-
 				log.Fatal("verification failed")
 			}
+			w.WritePhase("regalloc", "regalloc")
 
 			xform.Transform(xform.CleanUp, fn)
+			w.WritePhase("cleanup", "cleanup")
+
 			xform.Transform(xform.Finishing, fn)
+			w.WritePhase("finishing", "finishing")
 		}
 	}
 	return nil
