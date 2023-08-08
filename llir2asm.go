@@ -1,390 +1,89 @@
 package main
 
 import (
-	"fmt"
+	"flag"
+	"io"
 	"log"
 	"os"
 
-	"github.com/rj45/llir2asm/arch"
 	"github.com/rj45/llir2asm/asm"
-	"github.com/rj45/llir2asm/ir"
-	"github.com/rj45/llir2asm/ir/op"
-	"github.com/rj45/llir2asm/ir/typ"
-	"github.com/rj45/llir2asm/regalloc"
-	"github.com/rj45/llir2asm/regalloc/verify"
-	"github.com/rj45/llir2asm/xform"
-	"tinygo.org/x/go-llvm"
-
-	_ "github.com/rj45/llir2asm/arch/rj32"
-
-	_ "github.com/rj45/llir2asm/xform/cleanup"
-	_ "github.com/rj45/llir2asm/xform/elaboration"
-	_ "github.com/rj45/llir2asm/xform/finishing"
-	_ "github.com/rj45/llir2asm/xform/legalization"
-	_ "github.com/rj45/llir2asm/xform/lowering"
-	_ "github.com/rj45/llir2asm/xform/simplification"
+	"github.com/rj45/llir2asm/compile"
 )
 
-func init() {
-	llvm.InitializeAllTargets()
-	llvm.InitializeAllTargetMCs()
-	llvm.InitializeAllTargetInfos()
-	llvm.InitializeAllAsmParsers()
-	llvm.InitializeAllAsmPrinters()
-}
-
 func main() {
-	ctx := llvm.NewContext()
-	defer ctx.Dispose()
+	log.SetFlags(0)
+	log.SetOutput(os.Stderr)
 
-	optsize := 2
-	optspeed := 2
+	var optz = flag.Bool("Oz", false, "Optimize for min size")
+	var opts = flag.Bool("Os", false, "Optimize for size")
+	var opt0 = flag.Bool("O0", false, "Disable all optimizations")
+	var opt1 = flag.Bool("O1", false, "Minimal speed optimizations")
+	var opt2 = flag.Bool("O2", false, "Maximal speed optimizations")
+	var outfile = flag.String("o", "-", "Output assembly file")
+	var llfile = flag.String("ll", "", "Dump optimized llvm IR to file")
+	var irfile = flag.String("ir", "", "Dump pre-optimized llir2asm IR to file")
 
-	filename := os.Args[1]
+	flag.Parse()
+	c := compile.Compiler{}
 
-	buf, err := llvm.NewMemoryBufferFromFile(filename)
-	if err != nil {
-		log.Fatalf("unable to read %s: %s", filename, err)
-	}
-	//defer buf.Dispose() // throws error???
+	c.OptSize = 1
+	c.OptSpeed = 1
 
-	mod, err := ctx.ParseIR(buf)
-	if err != nil {
-		log.Fatalf("unable to parse LLVM IR %s: %s", filename, err)
-	}
-	defer mod.Dispose()
-
-	for fn := mod.FirstFunction(); !fn.IsNil(); fn = llvm.NextFunction(fn) {
-		// remove disabling optimizations
-		fn.RemoveEnumFunctionAttribute(llvm.AttributeKindID("optnone"))
-
-		// set any size optimizations
-		if optsize >= 1 {
-			fn.AddFunctionAttr(ctx.CreateEnumAttribute(llvm.AttributeKindID("optsize"), 0))
-		}
-		if optsize >= 2 {
-			fn.AddFunctionAttr(ctx.CreateEnumAttribute(llvm.AttributeKindID("minsize"), 0))
-		}
+	if *opts {
+		c.OptSize = 1
+	} else if *optz {
+		c.OptSize = 2
 	}
 
-	// {
-	// 	pm := llvm.NewPassManager()
-	// 	defer pm.Dispose()
-	// 	pm.AddGlobalDCEPass()
-	// 	pm.AddGlobalOptimizerPass()
-	// 	pm.AddIPSCCPPass()
-	// 	pm.AddInstructionCombiningPass()
-	// 	pm.AddAggressiveDCEPass()
-	// 	pm.AddFunctionAttrsPass()
-	// 	pm.AddGlobalDCEPass()
-	// 	if !pm.Run(mod) {
-	// 		fmt.Println("initial pass did nothing!")
-	// 	}
-	// }
-
-	passBuilder := llvm.NewPassManagerBuilder()
-	defer passBuilder.Dispose()
-
-	passBuilder.SetOptLevel(optspeed)
-	passBuilder.SetSizeLevel(optsize)
-
-	{
-		passManager := llvm.NewFunctionPassManagerForModule(mod)
-		defer passManager.Dispose()
-		passBuilder.PopulateFunc(passManager)
-
-		passManager.InitializeFunc()
-		for fn := mod.FirstFunction(); !fn.IsNil(); fn = llvm.NextFunction(fn) {
-			passManager.RunFunc(fn)
-		}
-		passManager.FinalizeFunc()
+	if *opt0 {
+		c.OptSpeed = 0
+		c.OptSize = 0
+	} else if *opt1 {
+		c.OptSpeed = 1
+	} else if *opt2 {
+		c.OptSpeed = 2
 	}
 
-	{
-		modPasses := llvm.NewPassManager()
-		defer modPasses.Dispose()
-		passBuilder.Populate(modPasses)
-		modPasses.Run(mod)
-	}
+	c.DumpLL = createFile(*llfile)
+	defer c.DumpLL.Close()
 
-	err = llvm.VerifyModule(mod, llvm.PrintMessageAction)
+	c.DumpIR = createFile(*irfile)
+	defer c.DumpIR.Close()
+
+	prog, err := c.Compile(flag.Args()[0])
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// fmt.Println(mod.String())
+	out := createFile(*outfile)
+	defer out.Close()
 
-	prog := &ir.Program{}
-
-	pkg := &ir.Package{
-		Name: "main",
-	}
-
-	mod.Dump()
-
-	prog.AddPackage(pkg)
-
-	for glob := mod.FirstGlobal(); !glob.IsNil(); glob = llvm.NextGlobal(glob) {
-		pkg.NewGlobal(glob.Name(), convertType(glob.Type()))
-		// todo: set global value?
-	}
-
-	for fn := mod.FirstFunction(); !fn.IsNil(); fn = llvm.NextFunction(fn) {
-		nfn := pkg.NewFunc(fn.Name(), convertFuncType(fn))
-
-		nfn.Referenced = true
-
-		blkmap := make(map[llvm.BasicBlock]*ir.Block)
-		valuemap := make(map[llvm.Value]*ir.Value)
-		instrmap := make(map[llvm.Value]*ir.Instr)
-
-		first := true
-		for blk := fn.FirstBasicBlock(); !blk.IsNil(); blk = llvm.NextBasicBlock(blk) {
-			nblk := nfn.NewBlock()
-			blkmap[blk] = nblk
-
-			if first {
-				first = false
-				for param := fn.FirstParam(); !param.IsNil(); param = llvm.NextParam(param) {
-					pval := nfn.NewValue(convertType(param.Type()))
-					nblk.AddDef(pval)
-					valuemap[param] = pval
-				}
-			}
-
-			nfn.InsertBlock(-1, nblk)
-
-			for instr := blk.FirstInstruction(); !instr.IsNil(); instr = llvm.NextInstruction(instr) {
-				op := translateOpcode(instr.InstructionOpcode())
-				ninstr := nfn.NewInstr(op, convertType(instr.Type()))
-				nblk.InsertInstr(-1, ninstr)
-				instrmap[instr] = ninstr
-				if ninstr.NumDefs() > 0 {
-					valuemap[instr] = ninstr.Def(0)
-				}
-			}
-		}
-
-		for blk := fn.FirstBasicBlock(); !blk.IsNil(); blk = llvm.NextBasicBlock(blk) {
-			// handle preds & succs
-			nblk := blkmap[blk]
-			bval := blk.AsValue()
-			for i := 0; i < bval.IncomingCount(); i++ {
-				inc := bval.IncomingBlock(i)
-				pred := blkmap[inc]
-				nblk.AddPred(pred)
-				pred.AddSucc(nblk)
-			}
-
-			for instr := blk.FirstInstruction(); !instr.IsNil(); instr = llvm.NextInstruction(instr) {
-				ninstr := instrmap[instr]
-				for i := 0; i < instr.OperandsCount(); i++ {
-					operand := instr.Operand(i)
-					oval := valuemap[operand]
-					if oval == nil {
-						if operand.IsConstant() {
-							opertyp := operand.Type()
-							ntyp := convertType(opertyp)
-							switch opertyp.TypeKind() {
-							case llvm.IntegerTypeKind:
-								ninstr.InsertArg(-1, nfn.ValueFor(ntyp, operand.SExtValue()))
-							case llvm.FunctionTypeKind:
-								panic(operand.Name())
-							case llvm.PointerTypeKind:
-								if ntyp.Pointer().Element.Kind() == typ.FunctionKind {
-									otherfn := pkg.Func(operand.Name())
-									ninstr.InsertArg(0, nfn.ValueFor(ntyp.Pointer().Element, otherfn))
-								}
-							default:
-								log.Panicf("todo: other constant types: %s", ntyp)
-							}
-
-						} else {
-
-							log.Panicf("todo: other operand types %d", operand.IntrinsicID())
-						}
-					} else {
-						ninstr.InsertArg(-1, oval)
-					}
-				}
-			}
-		}
-	}
-
-	prog.Emit(os.Stdout, ir.SSAString{})
-
-	arch.SetArch("rj32")
-	for _, pkg := range prog.Packages() {
-		for _, fn := range pkg.Funcs() {
-			xform.Transform(xform.Elaboration, fn)
-			xform.Transform(xform.Simplification, fn)
-			xform.Transform(xform.Lowering, fn)
-			xform.Transform(xform.Legalization, fn)
-
-			ra := regalloc.NewRegAlloc(fn)
-			err = ra.Allocate()
-			// if *debug {
-			// 	regalloc.WriteGraphvizCFG(ra)
-			// 	regalloc.DumpLivenessChart(ra)
-			// 	regalloc.WriteGraphvizInterferenceGraph(ra)
-			// 	regalloc.WriteGraphvizLivenessGraph(ra)
-			// }
-			if err != nil {
-				log.Fatal(err)
-			}
-			errs := verify.Verify(fn)
-			for _, err := range errs {
-				log.Printf("verification error: %s\n", err)
-			}
-			if len(errs) > 0 {
-
-				log.Fatal("verification failed")
-			}
-
-			xform.Transform(xform.CleanUp, fn)
-			xform.Transform(xform.Finishing, fn)
-		}
-	}
-
-	// prog.Emit(os.Stdout, ir.SSAString{})
-
-	fmt.Println()
-	fmt.Println()
-
-	asm.Emit(os.Stdout, asm.CustomASM{}, prog)
-
-	// mod.Dump()
+	asm.Emit(out, asm.CustomASM{}, prog)
 }
 
-func convertFuncType(fn llvm.Value) typ.Type {
-	if fn.Type().TypeKind() == llvm.FunctionTypeKind {
-		return convertType(fn.Type())
+func createFile(filename string) io.WriteCloser {
+	if filename == "-" {
+		return nopWriteCloser{os.Stdout}
 	}
-
-	// if fn.AllocatedType().TypeKind() == llvm.FunctionTypeKind {
-	// 	return convertType(fn.Type())
-	// }
-
-	// if fn.CalledFunctionType().TypeKind() == llvm.FunctionTypeKind {
-	// 	return convertType(fn.Type())
-	// }
-
-	params := make([]typ.Type, 0, fn.ParamsCount())
-
-	for param := fn.FirstParam(); !param.IsNil(); param = llvm.NextParam(param) {
-		params = append(params, convertType(param.Type()))
+	if filename == "" {
+		return nopWriteCloser{}
 	}
-
-	for blk := fn.LastBasicBlock(); !blk.IsNil(); blk = llvm.PrevBasicBlock(blk) {
-		for inst := blk.LastInstruction(); !inst.IsNil(); inst = llvm.PrevInstruction(inst) {
-			if inst.Opcode() == llvm.Ret {
-				if inst.Type().TypeKind() == llvm.VoidTypeKind {
-					return typ.FunctionType(nil, params, false)
-				}
-				return typ.FunctionType([]typ.Type{convertType(inst.Type())}, params, false)
-			}
-		}
+	f, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	return typ.FunctionType(nil, params, false)
+	return f
 }
 
-func convertType(t llvm.Type) typ.Type {
-	if t.IsNil() {
-		panic("nil type")
-	}
+type nopWriteCloser struct{ w io.Writer }
 
-	switch t.TypeKind() {
-	case llvm.IntegerTypeKind:
-		return typ.IntegerType(t.IntTypeWidth())
-	case llvm.FunctionTypeKind:
-		pt := t.ParamTypes()
-		params := make([]typ.Type, len(pt))
-		for i, pt := range pt {
-			params[i] = convertType(pt)
-		}
-		return typ.FunctionType([]typ.Type{convertType(t.ReturnType())}, params, t.IsFunctionVarArg())
-	case llvm.PointerTypeKind:
-		return typ.PointerType(convertType(t.ElementType()), t.PointerAddressSpace())
-	case llvm.VoidTypeKind:
-		return typ.VoidType()
-	default:
-		log.Panicf("Unknown type: %#v (%s)", t, t.TypeKind().String())
-		return 0
-	}
+func (nopWriteCloser) Close() error {
+	return nil
 }
 
-var opcodeMap = [...]op.Op{
-	llvm.Ret:         op.Ret,
-	llvm.Br:          op.Br,
-	llvm.Switch:      op.Switch,
-	llvm.IndirectBr:  op.IndirectBr,
-	llvm.Invoke:      op.Invoke,
-	llvm.Unreachable: op.Unreachable,
-
-	// Standard Binary Operators
-	llvm.Add:  op.Add,
-	llvm.FAdd: op.FAdd,
-	llvm.Sub:  op.Sub,
-	llvm.FSub: op.FSub,
-	llvm.Mul:  op.Mul,
-	llvm.FMul: op.FMul,
-	llvm.UDiv: op.UDiv,
-	llvm.SDiv: op.SDiv,
-	llvm.FDiv: op.FDiv,
-	llvm.URem: op.URem,
-	llvm.SRem: op.SRem,
-	llvm.FRem: op.FRem,
-
-	// Logical Operators
-	llvm.Shl:  op.Shl,
-	llvm.LShr: op.LShr,
-	llvm.AShr: op.AShr,
-	llvm.And:  op.And,
-	llvm.Or:   op.Or,
-	llvm.Xor:  op.Xor,
-
-	// Memory Operators
-	llvm.Alloca:        op.Alloca,
-	llvm.Load:          op.Load,
-	llvm.Store:         op.Store,
-	llvm.GetElementPtr: op.GetElementPtr,
-
-	// Cast Operators
-	llvm.Trunc:    op.Trunc,
-	llvm.ZExt:     op.ZExt,
-	llvm.SExt:     op.SExt,
-	llvm.FPToUI:   op.FPToUI,
-	llvm.FPToSI:   op.FPToSI,
-	llvm.UIToFP:   op.UIToFP,
-	llvm.SIToFP:   op.SIToFP,
-	llvm.FPTrunc:  op.FPTrunc,
-	llvm.FPExt:    op.FPExt,
-	llvm.PtrToInt: op.PtrToInt,
-	llvm.IntToPtr: op.IntToPtr,
-	llvm.BitCast:  op.BitCast,
-
-	// Other Operators
-	llvm.ICmp:   op.ICmp,
-	llvm.FCmp:   op.FCmp,
-	llvm.PHI:    op.PHI,
-	llvm.Call:   op.Call,
-	llvm.Select: op.Select,
-
-	// UserOp1
-	// UserOp2
-	llvm.VAArg:          op.VAArg,
-	llvm.ExtractElement: op.ExtractElement,
-	llvm.InsertElement:  op.InsertElement,
-	llvm.ShuffleVector:  op.ShuffleVector,
-	llvm.ExtractValue:   op.ExtractValue,
-	llvm.InsertValue:    op.InsertValue,
-}
-
-func translateOpcode(opcode llvm.Opcode) ir.Op {
-	op2 := opcodeMap[opcode]
-	if op2 == op.Invalid {
-		log.Panicf("bad opcode %d", opcode)
+func (n nopWriteCloser) Write(p []byte) (int, error) {
+	if n.w == nil {
+		return len(p), nil
 	}
-	return op2
+	return n.w.Write(p)
 }
