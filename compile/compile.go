@@ -119,7 +119,11 @@ func (c *Compiler) transformProgram() error {
 			w.WritePhase("legalization", "legalization")
 
 			ra := regalloc.NewRegAlloc(fn)
-			err := ra.Allocate()
+			err := ra.CheckInput()
+			if err != nil {
+				return fmt.Errorf("register allocation pre-check failed: %w", err)
+			}
+			err = ra.Allocate()
 			// if *debug {
 			// 	regalloc.WriteGraphvizCFG(ra)
 			// 	regalloc.DumpLivenessChart(ra)
@@ -129,6 +133,7 @@ func (c *Compiler) transformProgram() error {
 			if err != nil {
 				return fmt.Errorf("register allocation failed: %w", err)
 			}
+			w.WritePhase("regalloc", "regalloc")
 			errs := verify.Verify(fn)
 			for _, err := range errs {
 				log.Printf("verification error: %s\n", err)
@@ -136,7 +141,6 @@ func (c *Compiler) transformProgram() error {
 			if len(errs) > 0 {
 				log.Fatal("verification failed")
 			}
-			w.WritePhase("regalloc", "regalloc")
 
 			xform.Transform(xform.CleanUp, fn)
 			w.WritePhase("cleanup", "cleanup")

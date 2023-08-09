@@ -13,6 +13,14 @@ func (trans *translator) translateInstructions(fn llvm.Value) {
 		nblk := trans.blkmap[blk]
 
 		for instr := blk.FirstInstruction(); !instr.IsNil(); instr = llvm.NextInstruction(instr) {
+			if instr.InstructionOpcode() == llvm.PHI {
+				def := trans.fn.NewValue(translateType(instr.Type()))
+				nblk.AddDef(def)
+				trans.valuemap[instr] = def
+
+				continue
+			}
+
 			op := translateOpcode(instr.InstructionOpcode())
 			ninstr := trans.fn.NewInstr(op, translateType(instr.Type()))
 			nblk.InsertInstr(-1, ninstr)

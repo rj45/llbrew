@@ -26,6 +26,8 @@ func translateType(t llvm.Type) typ.Type {
 		return typ.PointerType(translateType(t.ElementType()), t.PointerAddressSpace())
 	case llvm.VoidTypeKind:
 		return typ.VoidType()
+	case llvm.LabelTypeKind:
+		return typ.LabelType()
 	default:
 		log.Panicf("Unknown type: %#v (%s)", t, t.TypeKind().String())
 		return 0
