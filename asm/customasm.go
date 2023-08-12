@@ -31,7 +31,7 @@ func (CustomASM) PCRelAddress(offsetWords int) string {
 
 func (CustomASM) Word(value string) string {
 	wordsize := int(sizes.WordSize()) * sizes.MinAddressableBits()
-	return fmt.Sprintf("#d%d le(%s)", wordsize, value)
+	return fmt.Sprintf("#d le(%s`%d)", value, wordsize)
 }
 
 func (CustomASM) String(val string) string {

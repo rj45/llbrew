@@ -37,6 +37,13 @@ func (trans *translator) translateOperands(fn llvm.Value) {
 					if ntyp.Pointer().Element.Kind() == typ.FunctionKind {
 						otherfn := trans.pkg.Func(operand.Name())
 						ninstr.InsertArg(0, trans.fn.ValueFor(ntyp.Pointer().Element, otherfn))
+					} else if !operand.IsAGlobalVariable().IsNil() {
+						globalName := operand.Name()
+						glob := trans.pkg.Global(globalName)
+						glob.Referenced = true
+						val := trans.fn.ValueFor(translateType(operand.Type()), glob)
+						ninstr.InsertArg(-1, val)
+
 					} else {
 						instr.Dump()
 						panic(" other constant pointer")

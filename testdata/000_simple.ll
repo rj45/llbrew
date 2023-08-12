@@ -5,10 +5,12 @@ target triple = "msp430-unknown-unknown-elf"
 
 ; Function Attrs: noinline nounwind optnone
 define dso_local i16 @main() #0 {
+  %1 = alloca i16, align 2
+  store i16 0, i16* %1, align 2
   ret i16 42
 }
 
-attributes #0 = { noinline nounwind optnone "frame-pointer"="none" "min-legal-vector-width"="0" "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #0 = { noinline nounwind optnone "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}

@@ -1,7 +1,10 @@
 package translate
 
 import (
+	"log"
+
 	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llir2asm/ir/typ"
 	"tinygo.org/x/go-llvm"
 )
 
@@ -36,7 +39,17 @@ func (trans *translator) initProgram() {
 
 func (trans *translator) translateGlobals() {
 	for glob := trans.mod.FirstGlobal(); !glob.IsNil(); glob = llvm.NextGlobal(glob) {
-		trans.pkg.NewGlobal(glob.Name(), translateType(glob.Type()))
+		nglob := trans.pkg.NewGlobal(glob.Name(), translateType(glob.Type()).Pointer().Element)
+		if glob.OperandsCount() > 0 {
+			value := glob.Operand(0)
+			switch nglob.Type.Kind() {
+			case typ.IntegerKind:
+				nglob.Value = ir.ConstFor(value.SExtValue())
+			default:
+				log.Panicf("unknown kind %d", value.Type().TypeKind())
+			}
+		}
+
 		// todo: set global value?
 	}
 }

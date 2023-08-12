@@ -107,7 +107,7 @@ func translateLoadStore(it ir.Iter) {
 	case op.Load:
 		it.Update(Load, instr.Def(0).Type, instr.Args())
 	case op.Store:
-		it.Update(Store, 0, instr.Args())
+		it.Update(Store, 0, instr.Arg(1), instr.Arg(2), instr.Arg(0))
 	}
 }
 

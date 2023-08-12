@@ -65,12 +65,13 @@ define dso_local i16 @fibonacci(i16 noundef %0) #0 {
 
 ; Function Attrs: noinline nounwind optnone
 define dso_local i16 @main() #0 {
-  %1 = call i16 @fibonacci(i16 noundef 7) #1
-  ret i16 %1
+  %1 = alloca i16, align 2
+  store i16 0, i16* %1, align 2
+  %2 = call i16 @fibonacci(i16 noundef 7)
+  ret i16 %2
 }
 
-attributes #0 = { noinline nounwind optnone "frame-pointer"="none" "min-legal-vector-width"="0" "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
-attributes #1 = { nobuiltin "no-builtins" }
+attributes #0 = { noinline nounwind optnone "frame-pointer"="none" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
 
 !llvm.module.flags = !{!0}
 !llvm.ident = !{!1}

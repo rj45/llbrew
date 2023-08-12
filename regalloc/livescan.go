@@ -128,10 +128,17 @@ func (ra *RegAlloc) liveInOutScan() error {
 	// otherwise a value is used somewhere that never
 	// got defined
 	if len(ra.info) > 0 && len(ra.info[0].liveIns) > 0 {
+		hasNonSpecialReg := false
 		for val := range ra.info[0].liveIns {
+			if val.ValueIn(fn).Reg().IsSpecialReg() {
+				continue
+			}
+			hasNonSpecialReg = true
 			fmt.Println("live in:", val.ValueIn(fn))
 		}
-		return ErrEntryLiveIns
+		if hasNonSpecialReg {
+			return ErrEntryLiveIns
+		}
 	}
 
 	return nil

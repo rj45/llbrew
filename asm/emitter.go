@@ -192,6 +192,14 @@ func (emit *Emitter) fn(fn *ir.Func) {
 				}
 				if blk.NumSuccs() > 0 {
 					args = append(args, emit.fmter.BlockLabel(blk.Succ(0).IDString()))
+
+					// if a conditional block doesn't fall through on the false branch,
+					// make sure an extra jump is added
+					if b < fn.NumBlocks()-1 &&
+						blk.NumSuccs() > 1 &&
+						blk.Succ(1) != fn.Block(b+1) {
+						args = append(args, emit.fmter.BlockLabel(blk.Succ(1).IDString()))
+					}
 				}
 			}
 
