@@ -2,11 +2,11 @@ package compile
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"strings"
 
 	"github.com/rj45/llir2asm/arch"
+	"github.com/rj45/llir2asm/asm"
 	"github.com/rj45/llir2asm/html"
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/regalloc"
@@ -39,9 +39,10 @@ type Compiler struct {
 	OptSpeed int
 	OptSize  int
 
-	DumpLL  io.WriteCloser
-	DumpIR  io.WriteCloser
+	DumpLL  string
+	DumpIR  string
 	DumpSSA string
+	OutFile string
 
 	ctx       llvm.Context
 	mod       llvm.Module
@@ -61,13 +62,13 @@ func (c *Compiler) dispose() {
 	}
 }
 
-func (c *Compiler) Compile(filename string) (*ir.Program, error) {
+func (c *Compiler) Compile(filename string) error {
 
 	c.Filename = filename
 
 	err := c.loadIR()
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer c.dispose()
 
@@ -80,7 +81,12 @@ func (c *Compiler) Compile(filename string) (*ir.Program, error) {
 	// re-split critical edges merged in optimization
 	c.splitCriticalEdges()
 
-	fmt.Fprint(c.DumpLL, c.mod.String())
+	if c.DumpLL != "" {
+		dump := createFile(c.DumpLL)
+		defer dump.Close()
+
+		fmt.Fprint(dump, c.mod.String())
+	}
 
 	// convert the LLVM program to our own IR
 	c.prog = translate.Translate(c.mod)
@@ -88,12 +94,21 @@ func (c *Compiler) Compile(filename string) (*ir.Program, error) {
 	// convert the program into assembly
 	err = c.transformProgram()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	c.prog.Emit(c.DumpIR, ir.SSAString{})
+	if c.DumpIR != "" {
+		dump := createFile(c.DumpLL)
+		defer dump.Close()
 
-	return c.prog, nil
+		c.prog.Emit(dump, ir.SSAString{})
+	}
+
+	out := createFile(c.OutFile)
+	defer out.Close()
+	asm.Emit(out, asm.CustomASM{}, c.prog)
+
+	return nil
 }
 
 func (c *Compiler) transformProgram() error {

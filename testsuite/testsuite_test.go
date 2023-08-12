@@ -2,13 +2,11 @@ package testsuite
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"sort"
 	"testing"
 
-	"github.com/rj45/llir2asm/asm"
 	"github.com/rj45/llir2asm/compile"
 )
 
@@ -55,26 +53,12 @@ func Test(t *testing.T) {
 			c := compile.Compiler{
 				OptSize:  1,
 				OptSpeed: 1,
-				DumpIR:   nopWriteCloser{},
-				DumpLL:   nopWriteCloser{},
 			}
 
-			prog, err := c.Compile(tc.filename)
+			err := c.Compile(tc.filename)
 			if err != nil {
 				t.Fatal(err)
 			}
-
-			asm.Emit(io.Discard, asm.CustomASM{}, prog)
 		})
 	}
-}
-
-type nopWriteCloser struct{}
-
-func (nopWriteCloser) Close() error {
-	return nil
-}
-
-func (n nopWriteCloser) Write(p []byte) (int, error) {
-	return len(p), nil
 }
