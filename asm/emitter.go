@@ -195,7 +195,9 @@ func (emit *Emitter) fn(fn *ir.Func) {
 				}
 			}
 
-			emit.line("%s", arch.Asm(instr.Op, defs, args))
+			arch.Asm(instr.Op, defs, args, func(line string) {
+				emit.line("%s", line)
+			})
 		}
 		emit.indent = ""
 	}

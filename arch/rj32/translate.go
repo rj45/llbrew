@@ -28,22 +28,17 @@ var twoOperandTranslations = map[op.Op]Opcode{
 // 	op.Negate: Neg,
 // }
 
-var branchesSigned = map[op.Op]Opcode{
-	op.Equal:        IfEq,
-	op.NotEqual:     IfNe,
-	op.Less:         IfLt,
-	op.LessEqual:    IfLe,
-	op.Greater:      IfGt,
-	op.GreaterEqual: IfGe,
-}
-
-var branchesUnsigned = map[op.Op]Opcode{
-	op.Equal:        IfEq,
-	op.NotEqual:     IfNe,
-	op.Less:         IfUlt,
-	op.LessEqual:    IfUle,
-	op.Greater:      IfUgt,
-	op.GreaterEqual: IfUge,
+var branches = map[op.Op]Opcode{
+	op.Equal:         IfEq,
+	op.NotEqual:      IfNe,
+	op.Less:          IfLt,
+	op.LessEqual:     IfLe,
+	op.Greater:       IfGt,
+	op.GreaterEqual:  IfGe,
+	op.ULess:         IfUlt,
+	op.ULessEqual:    IfUle,
+	op.UGreater:      IfUgt,
+	op.UGreaterEqual: IfUge,
 }
 
 func translate(it ir.Iter) {
@@ -73,13 +68,7 @@ func translate(it ir.Iter) {
 			log.Panicf("expecting if to have compare, but instead had: %s", compare.LongString())
 		}
 
-		branchOp := branchesSigned[compare.Op.(op.Op)]
-		// if basic, ok := typ.(*types.Basic); ok {
-		// 	// is signed integer?
-		// 	if basic.Info()&(types.IsInteger|types.IsUnsigned) == types.IsInteger {
-		// 		branchOp = branchesUnsigned[compare.Op.(op.Op)]
-		// 	}
-		// }
+		branchOp := branches[compare.Op.(op.Op)]
 		if branchOp == 0 {
 			log.Panicf("failed to translate compare %s", compare.Op.(op.Op))
 		}
