@@ -42,7 +42,7 @@ func (trans *translator) translateOperands(fn llvm.Value) {
 						panic(" other constant pointer")
 					}
 				case llvm.LabelTypeKind:
-					if ninstr.Op == op.Br {
+					if ninstr.Op == op.If || ninstr.Op == op.Jump {
 						// branch labels handled in block translation
 						continue
 					}

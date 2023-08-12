@@ -1,8 +1,6 @@
 package translate
 
 import (
-	"log"
-
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/ir/op"
 	"tinygo.org/x/go-llvm"
@@ -21,8 +19,24 @@ func (trans *translator) translateInstructions(fn llvm.Value) {
 				continue
 			}
 
-			op := translateOpcode(instr.InstructionOpcode())
-			ninstr := trans.fn.NewInstr(op, translateType(instr.Type()))
+			opcode := translateOpcode(instr.InstructionOpcode())
+			if opcode == op.Invalid {
+				switch instr.InstructionOpcode() {
+				case llvm.ICmp:
+					opcode = intPredicateMap[instr.IntPredicate()]
+				case llvm.Br:
+					if instr.OperandsCount() == 1 {
+						opcode = op.Jump
+					} else if instr.OperandsCount() == 3 {
+						opcode = op.If
+					} else {
+						instr.Dump()
+						panic(" unknown branch format")
+					}
+				}
+			}
+
+			ninstr := trans.fn.NewInstr(opcode, translateType(instr.Type()))
 			nblk.InsertInstr(-1, ninstr)
 			trans.instrmap[instr] = ninstr
 			if ninstr.NumDefs() > 0 {
@@ -33,16 +47,24 @@ func (trans *translator) translateInstructions(fn llvm.Value) {
 }
 
 func translateOpcode(opcode llvm.Opcode) ir.Op {
-	op2 := opcodeMap[opcode]
-	if op2 == op.Invalid {
-		log.Panicf("bad opcode %d", opcode)
-	}
-	return op2
+	return opcodeMap[opcode]
+}
+
+var intPredicateMap = [...]op.Op{
+	llvm.IntEQ:  op.Equal,
+	llvm.IntNE:  op.NotEqual,
+	llvm.IntSLT: op.Less,
+	llvm.IntSLE: op.LessEqual,
+	llvm.IntSGE: op.GreaterEqual,
+	llvm.IntSGT: op.Greater,
+	llvm.IntULT: op.ULess,
+	llvm.IntULE: op.ULessEqual,
+	llvm.IntUGE: op.UGreaterEqual,
+	llvm.IntUGT: op.UGreater,
 }
 
 var opcodeMap = [...]op.Op{
 	llvm.Ret:         op.Ret,
-	llvm.Br:          op.Br,
 	llvm.Switch:      op.Switch,
 	llvm.IndirectBr:  op.IndirectBr,
 	llvm.Invoke:      op.Invoke,
@@ -91,7 +113,6 @@ var opcodeMap = [...]op.Op{
 	llvm.BitCast:  op.BitCast,
 
 	// Other Operators
-	llvm.ICmp:   op.ICmp,
 	llvm.FCmp:   op.FCmp,
 	llvm.PHI:    op.PHI,
 	llvm.Call:   op.Call,

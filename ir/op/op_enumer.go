@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const _OpName = "invalidretifjumpbrswitchindirectBrinvokeunreachableiCmpfCmpequalnotEquallesslessEqualgreatergreaterEqualaddfAddsubfSubmulfMuluDivsDivfDivuRemsRemfRemshllShraShrandorxorallocaloadstoregetElementPtrtrunczExtsExtfPToUIfPToSIuIToFPsIToFPfPTruncfPExtptrToIntintToPtrbitCastpHIcallselectcopyvAArgextractElementinsertElementshuffleVectorextractValueinsertValuenumOps"
+const _OpName = "invalidretifjumpswitchindirectBrinvokeunreachablefCmpequalnotEquallesslessEqualgreatergreaterEqualuLessuLessEqualuGreateruGreaterEqualaddfAddsubfSubmulfMuluDivsDivfDivuRemsRemfRemshllShraShrandorxorallocaloadstoregetElementPtrtrunczExtsExtfPToUIfPToSIuIToFPsIToFPfPTruncfPExtptrToIntintToPtrbitCastpHIcallselectcopyvAArgextractElementinsertElementshuffleVectorextractValueinsertValuenumOps"
 
-var _OpIndex = [...]uint16{0, 7, 10, 12, 16, 18, 24, 34, 40, 51, 55, 59, 64, 72, 76, 85, 92, 104, 107, 111, 114, 118, 121, 125, 129, 133, 137, 141, 145, 149, 152, 156, 160, 163, 165, 168, 174, 178, 183, 196, 201, 205, 209, 215, 221, 227, 233, 240, 245, 253, 261, 268, 271, 275, 281, 285, 290, 304, 317, 330, 342, 353, 359}
+var _OpIndex = [...]uint16{0, 7, 10, 12, 16, 22, 32, 38, 49, 53, 58, 66, 70, 79, 86, 98, 103, 113, 121, 134, 137, 141, 144, 148, 151, 155, 159, 163, 167, 171, 175, 179, 182, 186, 190, 193, 195, 198, 204, 208, 213, 226, 231, 235, 239, 245, 251, 257, 263, 270, 275, 283, 291, 298, 301, 305, 311, 315, 320, 334, 347, 360, 372, 383, 389}
 
-const _OpLowerName = "invalidretifjumpbrswitchindirectbrinvokeunreachableicmpfcmpequalnotequallesslessequalgreatergreaterequaladdfaddsubfsubmulfmuludivsdivfdivuremsremfremshllshrashrandorxorallocaloadstoregetelementptrtrunczextsextfptouifptosiuitofpsitofpfptruncfpextptrtointinttoptrbitcastphicallselectcopyvaargextractelementinsertelementshufflevectorextractvalueinsertvaluenumops"
+const _OpLowerName = "invalidretifjumpswitchindirectbrinvokeunreachablefcmpequalnotequallesslessequalgreatergreaterequalulessulessequalugreaterugreaterequaladdfaddsubfsubmulfmuludivsdivfdivuremsremfremshllshrashrandorxorallocaloadstoregetelementptrtrunczextsextfptouifptosiuitofpsitofpfptruncfpextptrtointinttoptrbitcastphicallselectcopyvaargextractelementinsertelementshufflevectorextractvalueinsertvaluenumops"
 
 func (i Op) String() string {
 	if i >= Op(len(_OpIndex)-1) {
@@ -28,67 +28,69 @@ func _OpNoOp() {
 	_ = x[Ret-(1)]
 	_ = x[If-(2)]
 	_ = x[Jump-(3)]
-	_ = x[Br-(4)]
-	_ = x[Switch-(5)]
-	_ = x[IndirectBr-(6)]
-	_ = x[Invoke-(7)]
-	_ = x[Unreachable-(8)]
-	_ = x[ICmp-(9)]
-	_ = x[FCmp-(10)]
-	_ = x[Equal-(11)]
-	_ = x[NotEqual-(12)]
-	_ = x[Less-(13)]
-	_ = x[LessEqual-(14)]
-	_ = x[Greater-(15)]
-	_ = x[GreaterEqual-(16)]
-	_ = x[Add-(17)]
-	_ = x[FAdd-(18)]
-	_ = x[Sub-(19)]
-	_ = x[FSub-(20)]
-	_ = x[Mul-(21)]
-	_ = x[FMul-(22)]
-	_ = x[UDiv-(23)]
-	_ = x[SDiv-(24)]
-	_ = x[FDiv-(25)]
-	_ = x[URem-(26)]
-	_ = x[SRem-(27)]
-	_ = x[FRem-(28)]
-	_ = x[Shl-(29)]
-	_ = x[LShr-(30)]
-	_ = x[AShr-(31)]
-	_ = x[And-(32)]
-	_ = x[Or-(33)]
-	_ = x[Xor-(34)]
-	_ = x[Alloca-(35)]
-	_ = x[Load-(36)]
-	_ = x[Store-(37)]
-	_ = x[GetElementPtr-(38)]
-	_ = x[Trunc-(39)]
-	_ = x[ZExt-(40)]
-	_ = x[SExt-(41)]
-	_ = x[FPToUI-(42)]
-	_ = x[FPToSI-(43)]
-	_ = x[UIToFP-(44)]
-	_ = x[SIToFP-(45)]
-	_ = x[FPTrunc-(46)]
-	_ = x[FPExt-(47)]
-	_ = x[PtrToInt-(48)]
-	_ = x[IntToPtr-(49)]
-	_ = x[BitCast-(50)]
-	_ = x[PHI-(51)]
-	_ = x[Call-(52)]
-	_ = x[Select-(53)]
-	_ = x[Copy-(54)]
-	_ = x[VAArg-(55)]
-	_ = x[ExtractElement-(56)]
-	_ = x[InsertElement-(57)]
-	_ = x[ShuffleVector-(58)]
-	_ = x[ExtractValue-(59)]
-	_ = x[InsertValue-(60)]
-	_ = x[NumOps-(61)]
+	_ = x[Switch-(4)]
+	_ = x[IndirectBr-(5)]
+	_ = x[Invoke-(6)]
+	_ = x[Unreachable-(7)]
+	_ = x[FCmp-(8)]
+	_ = x[Equal-(9)]
+	_ = x[NotEqual-(10)]
+	_ = x[Less-(11)]
+	_ = x[LessEqual-(12)]
+	_ = x[Greater-(13)]
+	_ = x[GreaterEqual-(14)]
+	_ = x[ULess-(15)]
+	_ = x[ULessEqual-(16)]
+	_ = x[UGreater-(17)]
+	_ = x[UGreaterEqual-(18)]
+	_ = x[Add-(19)]
+	_ = x[FAdd-(20)]
+	_ = x[Sub-(21)]
+	_ = x[FSub-(22)]
+	_ = x[Mul-(23)]
+	_ = x[FMul-(24)]
+	_ = x[UDiv-(25)]
+	_ = x[SDiv-(26)]
+	_ = x[FDiv-(27)]
+	_ = x[URem-(28)]
+	_ = x[SRem-(29)]
+	_ = x[FRem-(30)]
+	_ = x[Shl-(31)]
+	_ = x[LShr-(32)]
+	_ = x[AShr-(33)]
+	_ = x[And-(34)]
+	_ = x[Or-(35)]
+	_ = x[Xor-(36)]
+	_ = x[Alloca-(37)]
+	_ = x[Load-(38)]
+	_ = x[Store-(39)]
+	_ = x[GetElementPtr-(40)]
+	_ = x[Trunc-(41)]
+	_ = x[ZExt-(42)]
+	_ = x[SExt-(43)]
+	_ = x[FPToUI-(44)]
+	_ = x[FPToSI-(45)]
+	_ = x[UIToFP-(46)]
+	_ = x[SIToFP-(47)]
+	_ = x[FPTrunc-(48)]
+	_ = x[FPExt-(49)]
+	_ = x[PtrToInt-(50)]
+	_ = x[IntToPtr-(51)]
+	_ = x[BitCast-(52)]
+	_ = x[PHI-(53)]
+	_ = x[Call-(54)]
+	_ = x[Select-(55)]
+	_ = x[Copy-(56)]
+	_ = x[VAArg-(57)]
+	_ = x[ExtractElement-(58)]
+	_ = x[InsertElement-(59)]
+	_ = x[ShuffleVector-(60)]
+	_ = x[ExtractValue-(61)]
+	_ = x[InsertValue-(62)]
+	_ = x[NumOps-(63)]
 }
 
-var _OpValues = []Op{Invalid, Ret, If, Jump, Br, Switch, IndirectBr, Invoke, Unreachable, ICmp, FCmp, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, Add, FAdd, Sub, FSub, Mul, FMul, UDiv, SDiv, FDiv, URem, SRem, FRem, Shl, LShr, AShr, And, Or, Xor, Alloca, Load, Store, GetElementPtr, Trunc, ZExt, SExt, FPToUI, FPToSI, UIToFP, SIToFP, FPTrunc, FPExt, PtrToInt, IntToPtr, BitCast, PHI, Call, Select, Copy, VAArg, ExtractElement, InsertElement, ShuffleVector, ExtractValue, InsertValue, NumOps}
+var _OpValues = []Op{Invalid, Ret, If, Jump, Switch, IndirectBr, Invoke, Unreachable, FCmp, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, ULess, ULessEqual, UGreater, UGreaterEqual, Add, FAdd, Sub, FSub, Mul, FMul, UDiv, SDiv, FDiv, URem, SRem, FRem, Shl, LShr, AShr, And, Or, Xor, Alloca, Load, Store, GetElementPtr, Trunc, ZExt, SExt, FPToUI, FPToSI, UIToFP, SIToFP, FPTrunc, FPExt, PtrToInt, IntToPtr, BitCast, PHI, Call, Select, Copy, VAArg, ExtractElement, InsertElement, ShuffleVector, ExtractValue, InsertValue, NumOps}
 
 var _OpNameToValueMap = map[string]Op{
 	_OpName[0:7]:          Invalid,
@@ -99,122 +101,126 @@ var _OpNameToValueMap = map[string]Op{
 	_OpLowerName[10:12]:   If,
 	_OpName[12:16]:        Jump,
 	_OpLowerName[12:16]:   Jump,
-	_OpName[16:18]:        Br,
-	_OpLowerName[16:18]:   Br,
-	_OpName[18:24]:        Switch,
-	_OpLowerName[18:24]:   Switch,
-	_OpName[24:34]:        IndirectBr,
-	_OpLowerName[24:34]:   IndirectBr,
-	_OpName[34:40]:        Invoke,
-	_OpLowerName[34:40]:   Invoke,
-	_OpName[40:51]:        Unreachable,
-	_OpLowerName[40:51]:   Unreachable,
-	_OpName[51:55]:        ICmp,
-	_OpLowerName[51:55]:   ICmp,
-	_OpName[55:59]:        FCmp,
-	_OpLowerName[55:59]:   FCmp,
-	_OpName[59:64]:        Equal,
-	_OpLowerName[59:64]:   Equal,
-	_OpName[64:72]:        NotEqual,
-	_OpLowerName[64:72]:   NotEqual,
-	_OpName[72:76]:        Less,
-	_OpLowerName[72:76]:   Less,
-	_OpName[76:85]:        LessEqual,
-	_OpLowerName[76:85]:   LessEqual,
-	_OpName[85:92]:        Greater,
-	_OpLowerName[85:92]:   Greater,
-	_OpName[92:104]:       GreaterEqual,
-	_OpLowerName[92:104]:  GreaterEqual,
-	_OpName[104:107]:      Add,
-	_OpLowerName[104:107]: Add,
-	_OpName[107:111]:      FAdd,
-	_OpLowerName[107:111]: FAdd,
-	_OpName[111:114]:      Sub,
-	_OpLowerName[111:114]: Sub,
-	_OpName[114:118]:      FSub,
-	_OpLowerName[114:118]: FSub,
-	_OpName[118:121]:      Mul,
-	_OpLowerName[118:121]: Mul,
-	_OpName[121:125]:      FMul,
-	_OpLowerName[121:125]: FMul,
-	_OpName[125:129]:      UDiv,
-	_OpLowerName[125:129]: UDiv,
-	_OpName[129:133]:      SDiv,
-	_OpLowerName[129:133]: SDiv,
-	_OpName[133:137]:      FDiv,
-	_OpLowerName[133:137]: FDiv,
-	_OpName[137:141]:      URem,
-	_OpLowerName[137:141]: URem,
-	_OpName[141:145]:      SRem,
-	_OpLowerName[141:145]: SRem,
-	_OpName[145:149]:      FRem,
-	_OpLowerName[145:149]: FRem,
-	_OpName[149:152]:      Shl,
-	_OpLowerName[149:152]: Shl,
-	_OpName[152:156]:      LShr,
-	_OpLowerName[152:156]: LShr,
-	_OpName[156:160]:      AShr,
-	_OpLowerName[156:160]: AShr,
-	_OpName[160:163]:      And,
-	_OpLowerName[160:163]: And,
-	_OpName[163:165]:      Or,
-	_OpLowerName[163:165]: Or,
-	_OpName[165:168]:      Xor,
-	_OpLowerName[165:168]: Xor,
-	_OpName[168:174]:      Alloca,
-	_OpLowerName[168:174]: Alloca,
-	_OpName[174:178]:      Load,
-	_OpLowerName[174:178]: Load,
-	_OpName[178:183]:      Store,
-	_OpLowerName[178:183]: Store,
-	_OpName[183:196]:      GetElementPtr,
-	_OpLowerName[183:196]: GetElementPtr,
-	_OpName[196:201]:      Trunc,
-	_OpLowerName[196:201]: Trunc,
-	_OpName[201:205]:      ZExt,
-	_OpLowerName[201:205]: ZExt,
-	_OpName[205:209]:      SExt,
-	_OpLowerName[205:209]: SExt,
-	_OpName[209:215]:      FPToUI,
-	_OpLowerName[209:215]: FPToUI,
-	_OpName[215:221]:      FPToSI,
-	_OpLowerName[215:221]: FPToSI,
-	_OpName[221:227]:      UIToFP,
-	_OpLowerName[221:227]: UIToFP,
-	_OpName[227:233]:      SIToFP,
-	_OpLowerName[227:233]: SIToFP,
-	_OpName[233:240]:      FPTrunc,
-	_OpLowerName[233:240]: FPTrunc,
-	_OpName[240:245]:      FPExt,
-	_OpLowerName[240:245]: FPExt,
-	_OpName[245:253]:      PtrToInt,
-	_OpLowerName[245:253]: PtrToInt,
-	_OpName[253:261]:      IntToPtr,
-	_OpLowerName[253:261]: IntToPtr,
-	_OpName[261:268]:      BitCast,
-	_OpLowerName[261:268]: BitCast,
-	_OpName[268:271]:      PHI,
-	_OpLowerName[268:271]: PHI,
-	_OpName[271:275]:      Call,
-	_OpLowerName[271:275]: Call,
-	_OpName[275:281]:      Select,
-	_OpLowerName[275:281]: Select,
-	_OpName[281:285]:      Copy,
-	_OpLowerName[281:285]: Copy,
-	_OpName[285:290]:      VAArg,
-	_OpLowerName[285:290]: VAArg,
-	_OpName[290:304]:      ExtractElement,
-	_OpLowerName[290:304]: ExtractElement,
-	_OpName[304:317]:      InsertElement,
-	_OpLowerName[304:317]: InsertElement,
-	_OpName[317:330]:      ShuffleVector,
-	_OpLowerName[317:330]: ShuffleVector,
-	_OpName[330:342]:      ExtractValue,
-	_OpLowerName[330:342]: ExtractValue,
-	_OpName[342:353]:      InsertValue,
-	_OpLowerName[342:353]: InsertValue,
-	_OpName[353:359]:      NumOps,
-	_OpLowerName[353:359]: NumOps,
+	_OpName[16:22]:        Switch,
+	_OpLowerName[16:22]:   Switch,
+	_OpName[22:32]:        IndirectBr,
+	_OpLowerName[22:32]:   IndirectBr,
+	_OpName[32:38]:        Invoke,
+	_OpLowerName[32:38]:   Invoke,
+	_OpName[38:49]:        Unreachable,
+	_OpLowerName[38:49]:   Unreachable,
+	_OpName[49:53]:        FCmp,
+	_OpLowerName[49:53]:   FCmp,
+	_OpName[53:58]:        Equal,
+	_OpLowerName[53:58]:   Equal,
+	_OpName[58:66]:        NotEqual,
+	_OpLowerName[58:66]:   NotEqual,
+	_OpName[66:70]:        Less,
+	_OpLowerName[66:70]:   Less,
+	_OpName[70:79]:        LessEqual,
+	_OpLowerName[70:79]:   LessEqual,
+	_OpName[79:86]:        Greater,
+	_OpLowerName[79:86]:   Greater,
+	_OpName[86:98]:        GreaterEqual,
+	_OpLowerName[86:98]:   GreaterEqual,
+	_OpName[98:103]:       ULess,
+	_OpLowerName[98:103]:  ULess,
+	_OpName[103:113]:      ULessEqual,
+	_OpLowerName[103:113]: ULessEqual,
+	_OpName[113:121]:      UGreater,
+	_OpLowerName[113:121]: UGreater,
+	_OpName[121:134]:      UGreaterEqual,
+	_OpLowerName[121:134]: UGreaterEqual,
+	_OpName[134:137]:      Add,
+	_OpLowerName[134:137]: Add,
+	_OpName[137:141]:      FAdd,
+	_OpLowerName[137:141]: FAdd,
+	_OpName[141:144]:      Sub,
+	_OpLowerName[141:144]: Sub,
+	_OpName[144:148]:      FSub,
+	_OpLowerName[144:148]: FSub,
+	_OpName[148:151]:      Mul,
+	_OpLowerName[148:151]: Mul,
+	_OpName[151:155]:      FMul,
+	_OpLowerName[151:155]: FMul,
+	_OpName[155:159]:      UDiv,
+	_OpLowerName[155:159]: UDiv,
+	_OpName[159:163]:      SDiv,
+	_OpLowerName[159:163]: SDiv,
+	_OpName[163:167]:      FDiv,
+	_OpLowerName[163:167]: FDiv,
+	_OpName[167:171]:      URem,
+	_OpLowerName[167:171]: URem,
+	_OpName[171:175]:      SRem,
+	_OpLowerName[171:175]: SRem,
+	_OpName[175:179]:      FRem,
+	_OpLowerName[175:179]: FRem,
+	_OpName[179:182]:      Shl,
+	_OpLowerName[179:182]: Shl,
+	_OpName[182:186]:      LShr,
+	_OpLowerName[182:186]: LShr,
+	_OpName[186:190]:      AShr,
+	_OpLowerName[186:190]: AShr,
+	_OpName[190:193]:      And,
+	_OpLowerName[190:193]: And,
+	_OpName[193:195]:      Or,
+	_OpLowerName[193:195]: Or,
+	_OpName[195:198]:      Xor,
+	_OpLowerName[195:198]: Xor,
+	_OpName[198:204]:      Alloca,
+	_OpLowerName[198:204]: Alloca,
+	_OpName[204:208]:      Load,
+	_OpLowerName[204:208]: Load,
+	_OpName[208:213]:      Store,
+	_OpLowerName[208:213]: Store,
+	_OpName[213:226]:      GetElementPtr,
+	_OpLowerName[213:226]: GetElementPtr,
+	_OpName[226:231]:      Trunc,
+	_OpLowerName[226:231]: Trunc,
+	_OpName[231:235]:      ZExt,
+	_OpLowerName[231:235]: ZExt,
+	_OpName[235:239]:      SExt,
+	_OpLowerName[235:239]: SExt,
+	_OpName[239:245]:      FPToUI,
+	_OpLowerName[239:245]: FPToUI,
+	_OpName[245:251]:      FPToSI,
+	_OpLowerName[245:251]: FPToSI,
+	_OpName[251:257]:      UIToFP,
+	_OpLowerName[251:257]: UIToFP,
+	_OpName[257:263]:      SIToFP,
+	_OpLowerName[257:263]: SIToFP,
+	_OpName[263:270]:      FPTrunc,
+	_OpLowerName[263:270]: FPTrunc,
+	_OpName[270:275]:      FPExt,
+	_OpLowerName[270:275]: FPExt,
+	_OpName[275:283]:      PtrToInt,
+	_OpLowerName[275:283]: PtrToInt,
+	_OpName[283:291]:      IntToPtr,
+	_OpLowerName[283:291]: IntToPtr,
+	_OpName[291:298]:      BitCast,
+	_OpLowerName[291:298]: BitCast,
+	_OpName[298:301]:      PHI,
+	_OpLowerName[298:301]: PHI,
+	_OpName[301:305]:      Call,
+	_OpLowerName[301:305]: Call,
+	_OpName[305:311]:      Select,
+	_OpLowerName[305:311]: Select,
+	_OpName[311:315]:      Copy,
+	_OpLowerName[311:315]: Copy,
+	_OpName[315:320]:      VAArg,
+	_OpLowerName[315:320]: VAArg,
+	_OpName[320:334]:      ExtractElement,
+	_OpLowerName[320:334]: ExtractElement,
+	_OpName[334:347]:      InsertElement,
+	_OpLowerName[334:347]: InsertElement,
+	_OpName[347:360]:      ShuffleVector,
+	_OpLowerName[347:360]: ShuffleVector,
+	_OpName[360:372]:      ExtractValue,
+	_OpLowerName[360:372]: ExtractValue,
+	_OpName[372:383]:      InsertValue,
+	_OpLowerName[372:383]: InsertValue,
+	_OpName[383:389]:      NumOps,
+	_OpLowerName[383:389]: NumOps,
 }
 
 var _OpNames = []string{
@@ -222,64 +228,66 @@ var _OpNames = []string{
 	_OpName[7:10],
 	_OpName[10:12],
 	_OpName[12:16],
-	_OpName[16:18],
-	_OpName[18:24],
-	_OpName[24:34],
-	_OpName[34:40],
-	_OpName[40:51],
-	_OpName[51:55],
-	_OpName[55:59],
-	_OpName[59:64],
-	_OpName[64:72],
-	_OpName[72:76],
-	_OpName[76:85],
-	_OpName[85:92],
-	_OpName[92:104],
-	_OpName[104:107],
-	_OpName[107:111],
-	_OpName[111:114],
-	_OpName[114:118],
-	_OpName[118:121],
-	_OpName[121:125],
-	_OpName[125:129],
-	_OpName[129:133],
-	_OpName[133:137],
+	_OpName[16:22],
+	_OpName[22:32],
+	_OpName[32:38],
+	_OpName[38:49],
+	_OpName[49:53],
+	_OpName[53:58],
+	_OpName[58:66],
+	_OpName[66:70],
+	_OpName[70:79],
+	_OpName[79:86],
+	_OpName[86:98],
+	_OpName[98:103],
+	_OpName[103:113],
+	_OpName[113:121],
+	_OpName[121:134],
+	_OpName[134:137],
 	_OpName[137:141],
-	_OpName[141:145],
-	_OpName[145:149],
-	_OpName[149:152],
-	_OpName[152:156],
-	_OpName[156:160],
-	_OpName[160:163],
-	_OpName[163:165],
-	_OpName[165:168],
-	_OpName[168:174],
-	_OpName[174:178],
-	_OpName[178:183],
-	_OpName[183:196],
-	_OpName[196:201],
-	_OpName[201:205],
-	_OpName[205:209],
-	_OpName[209:215],
-	_OpName[215:221],
-	_OpName[221:227],
-	_OpName[227:233],
-	_OpName[233:240],
-	_OpName[240:245],
-	_OpName[245:253],
-	_OpName[253:261],
-	_OpName[261:268],
-	_OpName[268:271],
-	_OpName[271:275],
-	_OpName[275:281],
-	_OpName[281:285],
-	_OpName[285:290],
-	_OpName[290:304],
-	_OpName[304:317],
-	_OpName[317:330],
-	_OpName[330:342],
-	_OpName[342:353],
-	_OpName[353:359],
+	_OpName[141:144],
+	_OpName[144:148],
+	_OpName[148:151],
+	_OpName[151:155],
+	_OpName[155:159],
+	_OpName[159:163],
+	_OpName[163:167],
+	_OpName[167:171],
+	_OpName[171:175],
+	_OpName[175:179],
+	_OpName[179:182],
+	_OpName[182:186],
+	_OpName[186:190],
+	_OpName[190:193],
+	_OpName[193:195],
+	_OpName[195:198],
+	_OpName[198:204],
+	_OpName[204:208],
+	_OpName[208:213],
+	_OpName[213:226],
+	_OpName[226:231],
+	_OpName[231:235],
+	_OpName[235:239],
+	_OpName[239:245],
+	_OpName[245:251],
+	_OpName[251:257],
+	_OpName[257:263],
+	_OpName[263:270],
+	_OpName[270:275],
+	_OpName[275:283],
+	_OpName[283:291],
+	_OpName[291:298],
+	_OpName[298:301],
+	_OpName[301:305],
+	_OpName[305:311],
+	_OpName[311:315],
+	_OpName[315:320],
+	_OpName[320:334],
+	_OpName[334:347],
+	_OpName[347:360],
+	_OpName[360:372],
+	_OpName[372:383],
+	_OpName[383:389],
 }
 
 // OpString retrieves an enum value from the enum constants string name.

@@ -76,14 +76,12 @@ const (
 	Ret
 	If
 	Jump
-	Br
 	Switch
 	IndirectBr
 	Invoke
 	Unreachable
 
 	// Compares
-	ICmp
 	FCmp
 	Equal
 	NotEqual
@@ -91,6 +89,10 @@ const (
 	LessEqual
 	Greater
 	GreaterEqual
+	ULess
+	ULessEqual
+	UGreater
+	UGreaterEqual
 
 	// Standard Binary Operators
 	Add
