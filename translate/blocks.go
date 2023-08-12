@@ -3,6 +3,7 @@ package translate
 import (
 	"fmt"
 
+	"github.com/rj45/llir2asm/ir/reg"
 	"tinygo.org/x/go-llvm"
 )
 
@@ -14,10 +15,16 @@ func (trans *translator) translateBlocks(fn llvm.Value) {
 
 		if first {
 			first = false
+			idx := 0
 			for param := fn.FirstParam(); !param.IsNil(); param = llvm.NextParam(param) {
 				pval := trans.fn.NewValue(translateType(param.Type()))
 				nblk.AddDef(pval)
 				trans.valuemap[param] = pval
+
+				if idx < len(reg.ArgRegs) {
+					pval.SetReg(reg.ArgRegs[idx])
+				}
+				idx++
 			}
 		}
 
@@ -40,7 +47,7 @@ func (trans *translator) translateBlocks(fn llvm.Value) {
 			continue // return
 		}
 
-		for i := 0; i < br.OperandsCount(); i++ {
+		for i := br.OperandsCount() - 1; i >= 0; i-- {
 			operand := br.Operand(i)
 			if operand.Type().TypeKind() == llvm.LabelTypeKind {
 				for b := fn.FirstBasicBlock(); !b.IsNil(); b = llvm.NextBasicBlock(b) {

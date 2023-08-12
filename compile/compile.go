@@ -102,7 +102,7 @@ func (c *Compiler) Compile(filename string) error {
 	}
 
 	if c.DumpIR != "" {
-		dump := createFile(c.DumpLL)
+		dump := createFile(c.DumpIR)
 		defer dump.Close()
 
 		c.prog.Emit(dump, ir.SSAString{})

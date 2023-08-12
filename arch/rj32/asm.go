@@ -24,6 +24,9 @@ func (cpuArch) Asm(op ir.Op, defs, args []string, emit func(string)) {
 	case IfEq, IfNe, IfLt, IfLe, IfGt, IfGe, IfUlt, IfUle, IfUge, IfUgt:
 		emit(strings.Replace(op.String(), "_", ".", -1) + " " + args[0] + ", " + args[1])
 		emit("    jump " + args[2])
+		if len(args) > 3 {
+			emit("jump " + args[3])
+		}
 	default:
 		if op.ClobbersArg() {
 			args = args[1:]
