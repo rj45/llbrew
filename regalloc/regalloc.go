@@ -2,10 +2,10 @@ package regalloc
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/rj45/llir2asm/ir"
-	"github.com/rj45/llir2asm/ir/op"
 	"github.com/rj45/llir2asm/ir/reg"
 )
 
@@ -41,22 +41,16 @@ func (ra *RegAlloc) CheckInput() error {
 	fn := ra.fn
 
 	for i := 0; i < fn.NumBlocks(); i++ {
-		blk := fn.Block(i)
+		pred := fn.Block(i)
 
-		if fn.Block(0).NumInstrs() < 1 {
-			// skip empty blocks
-			continue
-		}
+		// if fn.Block(0).NumInstrs() < 1 {
+		// 	// skip empty blocks
+		// 	continue
+		// }
 
-		// any block that returns has an implicit successor
-		extraSucc := 0
-		if blk.Instr(blk.NumInstrs()-1).Op == op.Ret {
-			extraSucc = 1
-		}
-
-		if (blk.NumSuccs() + extraSucc) > 1 {
-			for i := 0; i < blk.NumSuccs(); i++ {
-				succ := blk.Succ(i)
+		if pred.NumSuccs() > 1 {
+			for i := 0; i < pred.NumSuccs(); i++ {
+				succ := pred.Succ(i)
 
 				// the first block has an implicit pred
 				extraPred := 0
@@ -65,6 +59,7 @@ func (ra *RegAlloc) CheckInput() error {
 				}
 
 				if (succ.NumPreds() + extraPred) > 1 {
+					fmt.Println("Critical edge:", pred, "->", succ)
 					return ErrCriticalEdges
 				}
 			}
@@ -79,19 +74,19 @@ func (ra *RegAlloc) CheckInput() error {
 // This uses a graph colouring algorithm designed for use on SSA
 // code. The SSA code should have copies added for block
 // defs/args such that the allocator is free to choose different
-// registers as it crosses that boundary. Attemps will be
-// made to strongly prefer choosing the same register accross
+// registers as it crosses that boundary. Attempts will be
+// made to strongly prefer choosing the same register across
 // a copy and across block args/defs to minimize the number
 // of copies in the resultant code.
 //
 // A simpler algorithm is chosen rather than a fast algorithm
-// because this can easily be a very complex peice of code and
+// because this can easily be a very complex piece of code and
 // simpler code is easier to ensure is correct. It's extremely
 // important that the register allocator produces correct code
 // or else pretty much anything can happen.
 //
 // To that end, there is a verifier in the verify sub-package
-// which will double check the work of the alocator. See that
+// which will double check the work of the allocator. See that
 // code for more information on how it works.
 func (ra *RegAlloc) Allocate() error {
 	if err := ra.liveInOutScan(); err != nil {

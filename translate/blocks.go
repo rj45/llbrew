@@ -99,3 +99,27 @@ func (trans *translator) translateBlockArgs(blk llvm.BasicBlock) {
 		}
 	}
 }
+
+// func reverseSSASuccessorSort(block llvm.BasicBlock, list []llvm.BasicBlock, visited map[llvm.BasicBlock]bool) []llvm.BasicBlock {
+// 	visited[block] = true
+
+// 	br := block.LastInstruction()
+// 	if br.InstructionOpcode() != llvm.Br {
+// 		return append(list, block)
+// 	}
+
+// 	for i := br.OperandsCount() - 1; i >= 0; i-- {
+
+// 		succ := br.Operand(i).AsBasicBlock()
+
+// 		if succ.IsNil() {
+// 			continue
+// 		}
+
+// 		if !visited[succ] {
+// 			list = reverseSSASuccessorSort(succ, list, visited)
+// 		}
+// 	}
+
+// 	return append(list, block)
+// }

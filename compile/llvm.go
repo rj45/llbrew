@@ -89,3 +89,122 @@ func (c *Compiler) optimize() {
 	// 	log.Fatal(err)
 	// }
 }
+
+func (c *Compiler) splitCriticalEdges() {
+	for fn := c.mod.FirstFunction(); !fn.IsNil(); fn = llvm.NextFunction(fn) {
+
+		var splits [][2]llvm.BasicBlock
+		for bb := fn.FirstBasicBlock(); !bb.IsNil(); bb = llvm.NextBasicBlock(bb) {
+			lastInstr := bb.LastInstruction()
+			if !isBranchInstruction(lastInstr) {
+				continue
+			}
+
+			for i := 0; i < lastInstr.OperandsCount(); i++ {
+				operand := lastInstr.Operand(i)
+
+				if operand.Type().TypeKind() != llvm.LabelTypeKind {
+					continue
+				}
+				successor := operand.AsBasicBlock()
+
+				if hasCriticalEdge(bb, successor) {
+					splits = append(splits, [2]llvm.BasicBlock{bb, successor})
+				}
+			}
+		}
+
+		for _, split := range splits {
+			splitCriticalEdge(split[0], split[1])
+		}
+
+		// llvm.VerifyFunction(fn, llvm.PrintMessageAction)
+	}
+
+}
+
+func isBranchInstruction(instr llvm.Value) bool {
+	return instr.InstructionOpcode() == llvm.Br
+}
+
+func hasCriticalEdge(source, dest llvm.BasicBlock) bool {
+	lastInstr := source.LastInstruction()
+
+	operCount := lastInstr.OperandsCount()
+	if lastInstr.OperandsCount() > 0 && lastInstr.Operand(0).Type().TypeKind() != llvm.LabelTypeKind {
+		operCount--
+	}
+
+	numSuccessors := operCount
+	numPredecessors := len(getPredecessors(dest))
+
+	if dest == dest.Parent().FirstBasicBlock() {
+		numPredecessors++
+	}
+
+	return numSuccessors > 1 && numPredecessors > 1
+}
+
+func splitCriticalEdge(source, dest llvm.BasicBlock) {
+	lastInstr := source.LastInstruction()
+
+	// Create a new block
+	builder := llvm.NewBuilder()
+	defer builder.Dispose()
+
+	newBlock := llvm.AddBasicBlock(source.Parent(), dest.AsValue().Name()+".split")
+	newBlock.MoveAfter(source)
+
+	// Redirect the edge
+	builder.SetInsertPointAtEnd(newBlock)
+	builder.CreateBr(dest)
+	for i := 0; i < lastInstr.OperandsCount(); i++ {
+		if lastInstr.Operand(i).Name() == dest.AsValue().Name() {
+			lastInstr.SetOperand(i, newBlock.AsValue())
+		}
+	}
+
+	// Update PHI nodes
+	for instr := dest.FirstInstruction(); !instr.IsNil(); instr = llvm.NextInstruction(instr) {
+		phi := instr.IsAPHINode()
+
+		if phi.IsNil() {
+			break
+		}
+
+		builder.SetInsertPoint(dest, phi)
+		newPhi := builder.CreatePHI(phi.Type(), "")
+		incVal := make([]llvm.Value, phi.IncomingCount())
+		incBB := make([]llvm.BasicBlock, phi.IncomingCount())
+		for i := 0; i < phi.IncomingCount(); i++ {
+			incVal[i] = phi.IncomingValue(i)
+			incBB[i] = phi.IncomingBlock(i)
+
+			if phi.IncomingBlock(i).AsValue().Name() == source.AsValue().Name() {
+				incBB[i] = newBlock
+			}
+		}
+		newPhi.AddIncoming(incVal, incBB)
+		phi.ReplaceAllUsesWith(newPhi)
+		phi.RemoveFromParentAsInstruction()
+		instr = newPhi
+	}
+}
+
+func getPredecessors(bb llvm.BasicBlock) []llvm.BasicBlock {
+	var predecessors []llvm.BasicBlock
+	parentFunc := bb.Parent()
+	for iter := parentFunc.FirstBasicBlock(); !iter.IsNil(); iter = llvm.NextBasicBlock(iter) {
+		terminator := iter.LastInstruction()
+		if terminator.InstructionOpcode() == llvm.Br {
+			for i := 0; i < terminator.OperandsCount(); i++ {
+				if terminator.Operand(i).Type().TypeKind() == llvm.LabelTypeKind &&
+					terminator.Operand(i).AsBasicBlock() == bb {
+					predecessors = append(predecessors, iter)
+					break
+				}
+			}
+		}
+	}
+	return predecessors
+}

@@ -77,6 +77,9 @@ func (c *Compiler) Compile(filename string) (*ir.Program, error) {
 	// run the LLVM optimizer
 	c.optimize()
 
+	// re-split critical edges merged in optimization
+	c.splitCriticalEdges()
+
 	fmt.Fprint(c.DumpLL, c.mod.String())
 
 	// convert the LLVM program to our own IR

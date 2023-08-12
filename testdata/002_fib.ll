@@ -10,53 +10,57 @@ define dso_local i16 @fibonacci(i16 noundef %0) #0 {
   %4 = alloca i16, align 2
   %5 = alloca i16, align 2
   %6 = alloca i16, align 2
+  %7 = alloca i16, align 2
   store i16 %0, i16* %3, align 2
-  %7 = load i16, i16* %3, align 2
-  %8 = icmp sle i16 %7, 1
-  br i1 %8, label %9, label %11
+  %8 = load i16, i16* %3, align 2
+  %9 = icmp sle i16 %8, 1
+  br i1 %9, label %10, label %12
 
-9:                                                ; preds = %1
-  %10 = load i16, i16* %3, align 2
-  store i16 %10, i16* %2, align 2
-  br label %28
+10:                                               ; preds = %1
+  %11 = load i16, i16* %3, align 2
+  store i16 %11, i16* %2, align 2
+  br label %30
 
-11:                                               ; preds = %1
+12:                                               ; preds = %1
   store i16 0, i16* %4, align 2
   store i16 1, i16* %5, align 2
-  store i16 2, i16* %6, align 2
-  br label %12
+  store i16 0, i16* %6, align 2
+  store i16 2, i16* %7, align 2
+  br label %13
 
-12:                                               ; preds = %21, %11
-  %13 = load i16, i16* %6, align 2
-  %14 = load i16, i16* %3, align 2
-  %15 = icmp slt i16 %13, %14
-  br i1 %15, label %16, label %24
+13:                                               ; preds = %23, %12
+  %14 = load i16, i16* %7, align 2
+  %15 = load i16, i16* %3, align 2
+  %16 = icmp slt i16 %14, %15
+  br i1 %16, label %17, label %26
 
-16:                                               ; preds = %12
-  %17 = load i16, i16* %5, align 2
-  store i16 %17, i16* %4, align 2
-  %18 = load i16, i16* %5, align 2
-  %19 = load i16, i16* %4, align 2
+17:                                               ; preds = %13
+  %18 = load i16, i16* %4, align 2
+  %19 = load i16, i16* %5, align 2
   %20 = add nsw i16 %18, %19
-  store i16 %20, i16* %5, align 2
-  br label %21
-
-21:                                               ; preds = %16
+  store i16 %20, i16* %6, align 2
+  %21 = load i16, i16* %5, align 2
+  store i16 %21, i16* %4, align 2
   %22 = load i16, i16* %6, align 2
-  %23 = add nsw i16 %22, 1
-  store i16 %23, i16* %6, align 2
-  br label %12, !llvm.loop !2
+  store i16 %22, i16* %5, align 2
+  br label %23
 
-24:                                               ; preds = %12
-  %25 = load i16, i16* %4, align 2
-  %26 = load i16, i16* %5, align 2
-  %27 = add nsw i16 %25, %26
-  store i16 %27, i16* %2, align 2
-  br label %28
+23:                                               ; preds = %17
+  %24 = load i16, i16* %7, align 2
+  %25 = add nsw i16 %24, 1
+  store i16 %25, i16* %7, align 2
+  br label %13, !llvm.loop !2
 
-28:                                               ; preds = %24, %9
-  %29 = load i16, i16* %2, align 2
-  ret i16 %29
+26:                                               ; preds = %13
+  %27 = load i16, i16* %5, align 2
+  %28 = load i16, i16* %4, align 2
+  %29 = add nsw i16 %27, %28
+  store i16 %29, i16* %2, align 2
+  br label %30
+
+30:                                               ; preds = %26, %10
+  %31 = load i16, i16* %2, align 2
+  ret i16 %31
 }
 
 ; Function Attrs: noinline nounwind optnone

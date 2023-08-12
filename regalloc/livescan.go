@@ -2,6 +2,7 @@ package regalloc
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/rj45/llir2asm/ir"
 )
@@ -127,6 +128,9 @@ func (ra *RegAlloc) liveInOutScan() error {
 	// otherwise a value is used somewhere that never
 	// got defined
 	if len(ra.info) > 0 && len(ra.info[0].liveIns) > 0 {
+		for val := range ra.info[0].liveIns {
+			fmt.Println("live in:", val.ValueIn(fn))
+		}
 		return ErrEntryLiveIns
 	}
 
