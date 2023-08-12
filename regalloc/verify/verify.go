@@ -16,6 +16,7 @@ var regIndex map[reg.Reg]uint8
 var ErrNoRegAssigned = errors.New("no register assigned to a variable")
 var ErrWrongValueInReg = errors.New("attempt to read wrong value from register")
 var ErrMissingCopy = errors.New("missing copy of block parameter")
+var ErrIllegalAssignment = errors.New("illegal register assignment in two operand instruction")
 
 // Verify executes the function symbolically, tracking which values are
 // in which registers. Each block is executed with each permutation of
@@ -119,6 +120,15 @@ func Verify(fn *ir.Func) []error {
 						regidx := regIndex[reg]
 						live[regidx] = 0
 					}
+				}
+			}
+
+			// check two operand instructions have legal register assignments
+			if instr.Op.ClobbersArg() {
+				if instr.Def(0).Reg() != instr.Arg(0).Reg() {
+					errs = append(errs,
+						fmt.Errorf("%w: arg0 %s should be assigned register %s: fn %s blk %s instr %q",
+							ErrIllegalAssignment, instr.Arg(0), instr.Def(0).Reg(), fn.Name, blk, instr))
 				}
 			}
 

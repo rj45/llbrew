@@ -291,6 +291,12 @@ func (ra *RegAlloc) buildInterferenceGraph() {
 				}
 			}
 
+			// if the instruction clobbers its first arg (aka it's two operand) then
+			// ensure they are assigned the same register by merging the nodes
+			if instr.ClobbersArg() {
+				merge(instr.Def(0).ID, instr.Arg(0).ID)
+			}
+
 			// mark each used arg as now live
 			for u := 0; u < instr.NumArgs(); u++ {
 				use := instr.Arg(u)
