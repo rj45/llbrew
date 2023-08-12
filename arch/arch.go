@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/rj45/llir2asm/asm"
+	"github.com/rj45/llir2asm/customasm"
 	"github.com/rj45/llir2asm/ir/reg"
 	"github.com/rj45/llir2asm/sizes"
 	"github.com/rj45/llir2asm/xform"
@@ -18,6 +19,7 @@ type Architecture interface {
 	sizes.Arch
 	xform.Arch
 	asm.Arch
+	customasm.Arch
 }
 
 var arch Architecture
@@ -49,4 +51,5 @@ func SetArch(name string) {
 	sizes.SetArch(arch)
 	xform.SetArch(arch)
 	asm.SetArch(arch)
+	customasm.SetArch(arch)
 }

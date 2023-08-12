@@ -1,12 +1,15 @@
 package compile
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"strings"
 
 	"github.com/rj45/llir2asm/arch"
 	"github.com/rj45/llir2asm/asm"
+	"github.com/rj45/llir2asm/customasm"
 	"github.com/rj45/llir2asm/html"
 	"github.com/rj45/llir2asm/ir"
 	"github.com/rj45/llir2asm/regalloc"
@@ -43,6 +46,7 @@ type Compiler struct {
 	DumpIR  string
 	DumpSSA string
 	OutFile string
+	BinFile string
 
 	ctx       llvm.Context
 	mod       llvm.Module
@@ -106,7 +110,21 @@ func (c *Compiler) Compile(filename string) error {
 
 	out := createFile(c.OutFile)
 	defer out.Close()
-	asm.Emit(out, asm.CustomASM{}, c.prog)
+	outwr := io.Writer(out)
+
+	var outbuf bytes.Buffer
+	if c.BinFile != "" {
+		outwr = io.MultiWriter(out, &outbuf)
+	}
+
+	asm.Emit(outwr, asm.CustomASM{}, c.prog)
+
+	if c.BinFile != "" {
+		err := customasm.Assemble(outbuf.Bytes(), c.BinFile)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

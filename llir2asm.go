@@ -21,6 +21,7 @@ func main() {
 	var llfile = flag.String("ll", "", "Dump optimized llvm IR to file")
 	var irfile = flag.String("ir", "", "Dump pre-optimized llir2asm IR to file")
 	var dumpssa = flag.String("dumpssa", "", "Dump ssa.html for specified function")
+	var binfile = flag.String("bin", "", "Output binary using customasm")
 
 	flag.Parse()
 	c := compile.Compiler{}
@@ -47,6 +48,7 @@ func main() {
 	c.DumpIR = *irfile
 	c.DumpSSA = *dumpssa
 	c.OutFile = *outfile
+	c.BinFile = *binfile
 
 	err := c.Compile(flag.Args()[0])
 	if err != nil {
