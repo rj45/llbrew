@@ -175,6 +175,7 @@ func (c *Compiler) transformProgram() error {
 				log.Printf("verification error: %s\n", err)
 			}
 			if len(errs) > 0 {
+				w.Close()
 				log.Fatal("verification failed")
 			}
 

@@ -95,6 +95,7 @@ func (ra *RegAlloc) Allocate() error {
 
 	ra.buildInterferenceGraph()
 	ra.preColour()
+	// ra.iGraph.coalesceMoves()
 	ra.iGraph.pickColours()
 	if err := ra.assignRegisters(); err != nil {
 		return err

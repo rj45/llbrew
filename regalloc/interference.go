@@ -60,6 +60,137 @@ func (ig *iGraph) dbg(format string, args ...interface{}) {
 	}
 }
 
+func (ig *iGraph) addNode(id ir.ID) iNodeID {
+	if !id.ValueIn(ig.fn).NeedsReg() {
+		panic("attempt to add non reg value: " + id.ValueIn(ig.fn).IDString())
+	}
+
+	nodeID, found := ig.valNode[id]
+	if !found {
+		nodeID = iNodeID(len(ig.nodes))
+		ig.nodes = append(ig.nodes, iNode{
+			val: id,
+		})
+		ig.valNode[id] = nodeID
+		ig.dbg("%s: add interference node %s", ig.fn.Name, id)
+	}
+
+	return nodeID
+}
+
+func (ig *iGraph) addEdge(var1 ir.ID, var2 ir.ID) {
+	node1ID := ig.addNode(var1)
+	node2ID := ig.addNode(var2)
+
+	if var1 == var2 {
+		// don't add edges between ourself
+		return
+	}
+
+	for _, pair := range [2][2]iNodeID{{node1ID, node2ID}, {node2ID, node1ID}} {
+		node := &ig.nodes[pair[0]]
+		neighbor := pair[1]
+		if _, found := node.interferes[neighbor]; !found {
+			if node.interferes == nil {
+				node.interferes = make(map[iNodeID]struct{})
+			}
+
+			// add to the interferes map
+			node.interferes[neighbor] = struct{}{}
+
+			ig.dbg("%s: add interference edge %s -- %s", ig.fn.Name, node, neighbor)
+		}
+	}
+}
+
+func (ig *iGraph) addMove(var1 ir.ID, var2 ir.ID) {
+	node1ID := ig.addNode(var1)
+	node2ID := ig.addNode(var2)
+
+	if node1ID == node2ID {
+		// don't add moves between ourself
+		return
+	}
+
+	for _, pair := range [2][2]iNodeID{{node1ID, node2ID}, {node2ID, node1ID}} {
+		node := &ig.nodes[pair[0]]
+		neighbor := pair[1]
+
+		found := false
+		for _, id := range node.moves {
+			if id == neighbor {
+				found = true
+			}
+		}
+
+		if !found {
+			// add it to the moves list
+			node.moves = append(node.moves, neighbor)
+			ig.dbg("%s: add move edge %s -- %s", ig.fn.Name, node, neighbor)
+		}
+	}
+}
+
+func (ig *iGraph) merge(var1 ir.ID, var2 ir.ID) bool {
+	node1ID := ig.addNode(var1)
+	node2ID := ig.addNode(var2)
+
+	if var1 == var2 {
+		// don't merge ourself
+		return false
+	}
+
+	node1 := &ig.nodes[node1ID]
+	node2 := &ig.nodes[node2ID]
+
+	for _, list := range [2][]ir.ID{{node2.val}, node2.merged} {
+		for _, val := range list {
+			found := false
+			for _, mval := range node1.merged {
+				if mval == val {
+					found = true
+					break
+				}
+			}
+			if !found {
+				ig.dbg("%s: merging %s & %s -- pulling in %s", ig.fn.Name, node1, node2, val)
+				node1.merged = append(node1.merged, val)
+			}
+		}
+	}
+
+	for _, m := range node1.merged {
+		ig.valNode[m] = node1ID
+	}
+
+	node1.moves = append(node1.moves, node2.moves...)
+
+	if node1.interferes == nil && len(node2.interferes) > 0 {
+		node1.interferes = make(map[iNodeID]struct{})
+	}
+
+	for interferance := range node2.interferes {
+		node1.interferes[interferance] = struct{}{}
+	}
+
+	if node2.callerSaved {
+		node1.callerSaved = true
+	}
+
+	if node2.colour != noColour && node1.colour != noColour && node2.colour != node1.colour {
+		log.Panicf("%s: tried to merge two pre-coloured nodes %s and %s", ig.fn.Name, node1.val.InstrIn(ig.fn), node2.val.InstrIn(ig.fn))
+	} else if node2.colour != noColour {
+		node1.colour = node2.colour
+	}
+
+	ig.dbg("%s: merged %s -- %s", ig.fn.Name, node1, node2)
+
+	// clear out the node
+	*node2 = iNode{}
+
+	return true
+}
+
 // buildInterferenceGraph takes the liveness information and builds a
 // graph where nodes in the graph represent variables, and edges between
 // the nodes represent variables that are live at the same time, in other
@@ -68,137 +199,11 @@ func (ig *iGraph) dbg(format string, args ...interface{}) {
 func (ra *RegAlloc) buildInterferenceGraph() {
 	ig := &ra.iGraph
 	ig.fn = ra.fn
+	fn := ra.fn
 
 	ig.nodes = nil
 	ig.valNode = make(map[ir.ID]iNodeID)
 
-	addNode := func(id ir.ID) iNodeID {
-		if !id.ValueIn(ra.fn).NeedsReg() {
-			panic("attempt to add non reg value: " + id.ValueIn(ra.fn).IDString())
-		}
-
-		nodeID, found := ig.valNode[id]
-		if !found {
-			nodeID = iNodeID(len(ig.nodes))
-			ig.nodes = append(ig.nodes, iNode{
-				val: id,
-			})
-			ig.valNode[id] = nodeID
-			ig.dbg("%s: add interference node %s", ra.fn.Name, id)
-		}
-
-		return nodeID
-	}
-
-	addEdge := func(var1 ir.ID, var2 ir.ID) {
-		node1ID := addNode(var1)
-		node2ID := addNode(var2)
-
-		if var1 == var2 {
-			// don't add edges between ourself
-			return
-		}
-
-		for _, pair := range [2][2]iNodeID{{node1ID, node2ID}, {node2ID, node1ID}} {
-			node := &ig.nodes[pair[0]]
-			neighbor := pair[1]
-			if _, found := node.interferes[neighbor]; !found {
-				if node.interferes == nil {
-					node.interferes = make(map[iNodeID]struct{})
-				}
-
-				// add to the interferes map
-				node.interferes[neighbor] = struct{}{}
-
-				ig.dbg("%s: add interference edge %s -- %s", ra.fn.Name, node, neighbor)
-			}
-		}
-	}
-
-	addMove := func(var1 ir.ID, var2 ir.ID) {
-		node1ID := addNode(var1)
-		node2ID := addNode(var2)
-
-		if node1ID == node2ID {
-			// don't add moves between ourself
-			return
-		}
-
-		for _, pair := range [2][2]iNodeID{{node1ID, node2ID}, {node2ID, node1ID}} {
-			node := &ig.nodes[pair[0]]
-			neighbor := pair[1]
-
-			found := false
-			for _, id := range node.moves {
-				if id == neighbor {
-					found = true
-				}
-			}
-
-			if !found {
-				// add it to the moves list
-				node.moves = append(node.moves, neighbor)
-				ig.dbg("%s: add move edge %s -- %s", ra.fn.Name, node, neighbor)
-			}
-		}
-	}
-
-	merge := func(var1 ir.ID, var2 ir.ID) {
-		node1ID := addNode(var1)
-		node2ID := addNode(var2)
-
-		if var1 == var2 {
-			// don't merge ourself
-			return
-		}
-
-		node1 := &ig.nodes[node1ID]
-		node2 := &ig.nodes[node2ID]
-
-		for _, list := range [2][]ir.ID{{node2.val}, node2.merged} {
-			for _, val := range list {
-				found := false
-				for _, mval := range node1.merged {
-					if mval == val {
-						found = true
-						break
-					}
-				}
-				if !found {
-					node1.merged = append(node1.merged, val)
-				}
-			}
-		}
-
-		for _, m := range node1.merged {
-			ig.valNode[m] = node1ID
-		}
-
-		node1.moves = append(node1.moves, node2.moves...)
-
-		if node1.interferes == nil && len(node2.interferes) > 0 {
-			node1.interferes = make(map[iNodeID]struct{})
-		}
-
-		for interferance := range node2.interferes {
-			node1.interferes[interferance] = struct{}{}
-		}
-
-		if node2.callerSaved {
-			node1.callerSaved = true
-		}
-
-		if node2.colour != noColour && node1.colour != noColour {
-			log.Panicf("%s: tried to merge two pre-coloured nodes %s and %s", ra.fn.Name, node1.val.InstrIn(ra.fn), node2.val.InstrIn(ra.fn))
-		} else if node2.colour != noColour {
-			node1.colour = node2.colour
-		}
-
-		// clear out the node
-		*node2 = iNode{}
-	}
-
-	fn := ra.fn
 	for i := 0; i < fn.NumBlocks(); i++ {
 		blk := fn.Block(i)
 		info := ra.info[blk.Index()]
@@ -220,18 +225,7 @@ func (ra *RegAlloc) buildInterferenceGraph() {
 
 				live[arg.ID] = struct{}{}
 
-				ig.dbg("%s: merging %s -- %s", ra.fn.Name, def, arg)
-				merge(def.ID, arg.ID)
-
-				// if def.NeedsReg() {
-				// 	// arg is live now
-				// 	live[arg.ID] = struct{}{}
-
-				// 	if arg.NeedsReg() {
-				// 		// mark a move from the arg to the def
-				// 		addMove(arg.ID, def.ID)
-				// 	}
-				// }
+				ig.merge(def.ID, arg.ID)
 			}
 
 			offset += succ.NumDefs()
@@ -241,7 +235,7 @@ func (ra *RegAlloc) buildInterferenceGraph() {
 		for id1 := range live {
 			for id2 := range live {
 				if id1 != id2 {
-					addEdge(id1, id2)
+					ig.addEdge(id1, id2)
 				}
 			}
 		}
@@ -256,17 +250,17 @@ func (ra *RegAlloc) buildInterferenceGraph() {
 				if def.NeedsReg() {
 					// make sure the node is in the graph, even if there's no
 					// other live values at the time
-					addNode(def.ID)
+					ig.addNode(def.ID)
 
 					// make sure all live vars are marked as interfering
 					for id := range live {
-						addEdge(def.ID, id)
+						ig.addEdge(def.ID, id)
 					}
 
 					// if it's a move (aka copy)
 					if instr.Op.IsCopy() && instr.Arg(d).NeedsReg() {
 						// add the move between the corresponding defs and args
-						addMove(def.ID, instr.Arg(d).ID)
+						ig.addMove(def.ID, instr.Arg(d).ID)
 					}
 				}
 			}
@@ -294,7 +288,7 @@ func (ra *RegAlloc) buildInterferenceGraph() {
 			// if the instruction clobbers its first arg (aka it's two operand) then
 			// ensure they are assigned the same register by merging the nodes
 			if instr.ClobbersArg() {
-				merge(instr.Def(0).ID, instr.Arg(0).ID)
+				ig.merge(instr.Def(0).ID, instr.Arg(0).ID)
 			}
 
 			// mark each used arg as now live
@@ -311,11 +305,68 @@ func (ra *RegAlloc) buildInterferenceGraph() {
 			if def.NeedsReg() {
 				// make sure the node is in the graph, even if there's no
 				// other live values at the time
-				addNode(def.ID)
+				ig.addNode(def.ID)
 
 				// make sure all live vars are marked as interfering
 				for id := range live {
-					addEdge(def.ID, id)
+					ig.addEdge(def.ID, id)
+				}
+			}
+		}
+	}
+}
+
+// try to merge moves that don't interfere with each other
+func (ig *iGraph) coalesceMoves() {
+	changed := true
+	for changed {
+		changed = false
+		for _, nd := range ig.nodes {
+			if len(nd.moves) == 0 {
+				continue
+			}
+
+			if nd.val == 0 {
+				// already merged
+				continue
+			}
+
+			interferes := false
+			for _, id1 := range nd.moves {
+				if _, found := nd.interferes[id1]; found {
+					interferes = true
+				}
+
+				for _, id2 := range nd.moves {
+					if id1 == id2 {
+						continue
+					}
+					if _, found := ig.nodes[id1].interferes[id2]; found {
+						interferes = true
+					}
+
+				}
+			}
+
+			if !interferes {
+				ig.dbg("%s: moves do not interfere: %v", ig.fn.Name, nd.moves)
+
+				for _, id := range nd.moves {
+					if ig.nodes[id].val == 0 {
+						continue
+					}
+					if ig.nodes[id].colour > 0 && nd.colour > 0 && ig.nodes[id].colour != nd.colour {
+						continue
+					}
+
+					if ig.merge(nd.val, ig.nodes[id].val) {
+						changed = true
+						break
+					}
+
+				}
+				if changed {
+					break
 				}
 			}
 		}
@@ -350,6 +401,7 @@ func (ig *iGraph) findPerfectEliminationOrder() []iNodeID {
 					card++
 				}
 			}
+			// hasMoreMoves := len(ig.nodes[cand].moves) > len(ig.nodes[maxI].moves)
 			if card > maxCard {
 				maxI = i
 				maxNode = cand
@@ -377,6 +429,17 @@ func (ig *iGraph) findPerfectEliminationOrder() []iNodeID {
 func (ig *iGraph) pickColours() {
 	order := ig.findPerfectEliminationOrder()
 
+	for i := len(order) - 1; i >= 0; i-- {
+		nodeID := order[i]
+		node := &ig.nodes[nodeID]
+		if node.val == 0 {
+			continue
+		}
+		if len(node.moves) > 0 {
+			node.pickColour(ig)
+		}
+	}
+
 	// pick colours in reverse perfect elimination order
 	for i := len(order) - 1; i >= 0; i-- {
 		nodeID := order[i]
@@ -390,15 +453,22 @@ func (ig *iGraph) pickColours() {
 
 const noColour uint16 = 0
 
-func (nd *iNode) pickColour(ig *iGraph) {
-	if nd.colour != noColour {
-		// already coloured
-		return
-	}
+func (nd *iNode) findMostUsedMoveColour(ig *iGraph, id iNodeID, checked map[iNodeID]bool, cand iNodeID, canduses int) (iNodeID, int) {
+	best := cand
+	uses := canduses
 
 	// try to pick a move colour if that colour doesn't
 	// interfere with any others
-	for _, mv := range nd.moves {
+	for _, mv := range ig.nodes[id].moves {
+		if checked[mv] {
+			continue
+		}
+		checked[mv] = true
+
+		if len(ig.nodes[mv].moves) > 0 {
+			best, uses = nd.findMostUsedMoveColour(ig, mv, checked, best, uses)
+		}
+
 		moveColour := ig.nodes[mv].colour
 
 		// skip if the move node has not already been assigned a colour
@@ -417,11 +487,40 @@ func (nd *iNode) pickColour(ig *iGraph) {
 
 		// if it doesn't interfere  and the move colour is caller saved if it needs to be
 		if !interferes && (!nd.callerSaved || moveColour >= savedStart) {
-			// then choose that colour
-			nd.colour = moveColour
-			ig.dbg("%s: pick move colour %d for %s", ig.fn.Name, nd.colour, nd)
-			return
+			val := ig.nodes[mv].val.ValueIn(ig.fn)
+			if val.NumUses() > uses {
+				uses = val.NumUses()
+				best = mv
+			}
 		}
+	}
+	return best, uses
+}
+
+func (nd *iNode) pickColour(ig *iGraph) {
+	if nd.colour != noColour {
+		ig.dbg("%s: %s already has colour %d", ig.fn.Name, nd, nd.colour)
+		// already coloured
+		return
+	}
+
+	checked := map[iNodeID]bool{}
+
+	var id iNodeID
+	for i := range ig.nodes {
+		if &ig.nodes[i] == nd {
+			id = iNodeID(i)
+			break
+		}
+	}
+
+	best, uses := nd.findMostUsedMoveColour(ig, id, checked, 0, -1)
+
+	if uses >= 0 {
+		moveColour := ig.nodes[best].colour
+		nd.colour = moveColour
+		ig.dbg("%s: pick move colour %d for %s", ig.fn.Name, nd.colour, nd)
+		return
 	}
 
 	// if the node must be in caller saved registers, then start it there rather
@@ -438,12 +537,18 @@ func (nd *iNode) pickColour(ig *iGraph) {
 
 		// for each neighbour in the interferences
 		for nb := range nd.interferes {
+			if ig.nodes[nb].val == 0 {
+				continue
+			}
+
 			// if the neighbour already has this colour
 			if ig.nodes[nb].colour == colour {
 				// then it interferes and we can't use it
+				ig.dbg("%s: checking node %s: fail: colour %d already assigned to %s", ig.fn.Name, nd.val, colour, nb)
 				interferes = true
 				break
 			}
+			ig.dbg("%s: checking node %s: colour %d not assigned to %s", ig.fn.Name, nd.val, colour, nb)
 		}
 
 		// if it doesn't interfere then

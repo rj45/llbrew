@@ -24,7 +24,7 @@ func addClobberCopies(it ir.Iter) {
 
 	def := instr.Arg(0).Def()
 	cand := def.Instr()
-	if cand.Op != nil && cand.Op.IsCopy() && cand.Block() == instr.Block() {
+	if cand.Op != nil && cand.Op.IsCopy() && cand.NumDefs() == 1 && cand.Block() == instr.Block() {
 		// already added the copy
 		return
 	}
