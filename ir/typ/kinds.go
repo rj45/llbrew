@@ -6,8 +6,8 @@ const (
 	VoidKind Kind = iota
 	FloatKind
 	DoubleKind
-	LabelKind
 	IntegerKind
+	LabelKind
 	FunctionKind
 	StructKind
 	ArrayKind

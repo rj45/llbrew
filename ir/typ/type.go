@@ -28,6 +28,7 @@ func (t Type) String() string {
 	case FunctionKind:
 		return t.Function().String()
 	case StructKind:
+		return t.Struct().String()
 	case ArrayKind:
 	case PointerKind:
 		return t.Pointer().String()
@@ -36,6 +37,77 @@ func (t Type) String() string {
 	case TokenKind:
 	}
 	return "todo"
+}
+
+func (t Type) ZeroValue() interface{} {
+	switch t.Kind() {
+	case VoidKind:
+		return nil
+	case FloatKind:
+		return float32(0)
+	case DoubleKind:
+		return float64(0)
+	case LabelKind:
+		return ""
+	case IntegerKind:
+		return 0
+	case FunctionKind:
+		return nil
+	case StructKind:
+		elem := t.Struct().Elements
+		v := make([]interface{}, len(t.Struct().Elements))
+		for i, e := range elem {
+			v[i] = e.ZeroValue()
+		}
+		return v
+	case ArrayKind:
+		return nil
+	case PointerKind:
+		return nil
+	case VectorKind:
+		return nil
+	case MetadataKind:
+		return nil
+	case TokenKind:
+		return nil
+	}
+	panic("unknown type zero value")
+}
+
+// Sizeof returns the size of the type in min-addressable-units (usually bytes).
+func (t Type) SizeOf() int {
+	units := sizes.MinAddressableBits()
+	switch t.Kind() {
+	case VoidKind:
+		return 0
+	case FloatKind:
+		return 32 / units // todo: add to `sizes` so it's configurable
+	case DoubleKind:
+		return 64 / units // todo: add to `sizes` so it's configurable
+	case LabelKind:
+		return sizes.WordSize()
+	case IntegerKind:
+		return t.Integer().Bits() / units
+	case FunctionKind:
+		return sizes.WordSize()
+	case StructKind:
+		total := 0
+		for _, st := range t.Struct().Elements {
+			total += st.SizeOf()
+		}
+		return total
+	case ArrayKind:
+		panic("todo")
+	case PointerKind:
+		return sizes.WordSize() // todo: maybe word size and pointer size are different?
+	case VectorKind:
+		panic("todo")
+	case MetadataKind:
+		return 0
+	case TokenKind:
+		return 0
+	}
+	panic("unknown type size")
 }
 
 func StringType() Type {

@@ -50,13 +50,9 @@ func translate(it ir.Iter) {
 	case op.Ret, op.Jump:
 		it.Update(directTranslate[instr.Op.(op.Op)], 0, instr.Args())
 	case op.Add, op.Sub, op.And, op.Or, op.Xor, op.Shl, op.AShr, op.LShr:
-		if instr.NumArgs() == 2 && instr.Arg(0).Reg() == instr.Def(0).Reg() {
-			it.Update(twoOperandTranslations[instr.Op.(op.Op)], 0, instr.Args())
-		}
+		it.Update(twoOperandTranslations[instr.Op.(op.Op)], 0, instr.Args())
 	// case op.Not, op.Negate:
-	// 	if instr.NumArgs() == 1 && instr.Arg(0).Reg() == instr.Def(0).Reg() {
-	// 		it.Update(oneOperandTranslations[instr.Op.(op.Op)], nil, instr.Args())
-	// 	}
+	// 	it.Update(oneOperandTranslations[instr.Op.(op.Op)], nil, instr.Args())
 	case op.Equal, op.NotEqual, op.Less, op.LessEqual, op.Greater, op.GreaterEqual:
 		def := instr.Def(0)
 		if def.NumUses() > 1 || def.Use(0).Instr().Op != op.If {
@@ -107,7 +103,7 @@ func translateLoadStore(it ir.Iter) {
 	case op.Load:
 		it.Update(Load, instr.Def(0).Type, instr.Args())
 	case op.Store:
-		it.Update(Store, 0, instr.Arg(1), instr.Arg(2), instr.Arg(0))
+		it.Update(Store, 0, instr.Arg(0), instr.Arg(1), instr.Arg(2))
 	}
 }
 

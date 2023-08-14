@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llir2asm/ir/typ"
 	"github.com/rj45/llir2asm/sizes"
 )
 
@@ -230,6 +231,17 @@ func (emit *Emitter) global(glob *ir.Global) {
 		emit.line("%s", emit.fmter.String(str))
 	} else if val, ok := ir.IntValue(glob.Value); ok {
 		emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val)))
+	} else if val, ok := ir.StructValue(glob.Value); ok {
+		types := glob.Type.Struct().Elements
+		for i, t := range types {
+			switch t.Kind() {
+			case typ.IntegerKind:
+				emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val[i])))
+			default:
+				panic("implement more types")
+			}
+		}
+
 	} else {
 		panic("todo: implement more types")
 	}

@@ -33,6 +33,9 @@ const (
 	// funcs and globals
 	FuncConst
 	GlobalConst
+
+	// struct const
+	StructConst
 )
 
 type (
@@ -43,6 +46,7 @@ type (
 	intConst    int64
 	funcConst   struct{ fn *Func }
 	globalConst struct{ glob *Global }
+	structConst struct{ elem []Const }
 )
 
 func (notConst) Location() Location { return InConst }
@@ -80,6 +84,21 @@ func (c globalConst) Kind() ConstKind    { return GlobalConst }
 func (c globalConst) String() string     { return c.glob.FullName }
 func (c globalConst) private()           {}
 
+func (c structConst) Location() Location { return InConst }
+func (c structConst) Kind() ConstKind    { return StructConst }
+func (c structConst) private()           {}
+
+func (c structConst) String() string {
+	str := "{"
+	for i, e := range c.elem {
+		if i != 0 {
+			str += ","
+		}
+		str += e.String()
+	}
+	return str + "}"
+}
+
 // Return a Const for a value
 func ConstFor(v interface{}) Const {
 	switch v := v.(type) {
@@ -97,6 +116,14 @@ func ConstFor(v interface{}) Const {
 		return funcConst{v}
 	case *Global:
 		return globalConst{v}
+	case []Const:
+		return MakeStructConst(v)
+	case []interface{}:
+		elem := make([]Const, len(v))
+		for i := range v {
+			elem[i] = ConstFor(v[i])
+		}
+		return MakeStructConst(elem)
 	case constant.Value:
 		// convert constants
 		switch v.Kind() {
@@ -168,4 +195,20 @@ func GlobalValue(c Const) (*Global, bool) {
 		return nil, false
 	}
 	return c.(globalConst).glob, true
+}
+
+func StructValue(c Const) ([]Const, bool) {
+	if c.Kind() != StructConst {
+		return nil, false
+	}
+	sc := c.(structConst)
+	vals := make([]Const, len(sc.elem))
+	copy(vals, sc.elem)
+	return vals, true
+}
+
+func MakeStructConst(elem []Const) Const {
+	cp := make([]Const, len(elem))
+	copy(cp, elem)
+	return structConst{cp}
 }

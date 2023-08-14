@@ -5,8 +5,9 @@ import "sync"
 type Context struct {
 	// todo: add rwlock
 
-	function []Function
-	pointer  []Pointer
+	functions []Function
+	pointers  []Pointer
+	structs   []Struct
 
 	lock sync.RWMutex
 }

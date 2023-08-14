@@ -45,6 +45,13 @@ func (trans *translator) translateGlobals() {
 			switch nglob.Type.Kind() {
 			case typ.IntegerKind:
 				nglob.Value = ir.ConstFor(value.SExtValue())
+			case typ.StructKind:
+				if !value.IsAConstantAggregateZero().IsNil() {
+					nglob.Value = ir.ConstFor(nglob.Type.ZeroValue())
+				} else {
+					value.Dump()
+					panic(" -- some other struct constant")
+				}
 			default:
 				log.Panicf("unknown kind %d", value.Type().TypeKind())
 			}

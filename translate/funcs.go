@@ -22,5 +22,5 @@ func (trans *translator) translateFunction(fn llvm.Value) {
 
 	trans.translateBlocks(fn)
 	trans.translateInstructions(fn)
-	trans.translateOperands(fn)
+	trans.translateAllOperands(fn)
 }

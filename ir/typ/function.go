@@ -15,7 +15,7 @@ func (ctx *Context) Function(typ Type) Function {
 
 	ctx.lock.RLock()
 	defer ctx.lock.RUnlock()
-	return ctx.function[typ.index()]
+	return ctx.functions[typ.index()]
 }
 
 func (ctx *Context) FunctionType(results []Type, params []Type, isVarArg bool) Type {
@@ -23,7 +23,7 @@ func (ctx *Context) FunctionType(results []Type, params []Type, isVarArg bool) T
 	defer ctx.lock.Unlock()
 
 next:
-	for index, fn := range ctx.function {
+	for index, fn := range ctx.functions {
 		if len(fn.Results) != len(results) {
 			continue
 		}
@@ -49,12 +49,12 @@ next:
 		return typeFor(FunctionKind, index)
 	}
 	// todo: copy slices?
-	ctx.function = append(ctx.function, Function{
+	ctx.functions = append(ctx.functions, Function{
 		Results:  results,
 		Params:   params,
 		IsVarArg: isVarArg,
 	})
-	return typeFor(FunctionKind, len(ctx.function)-1)
+	return typeFor(FunctionKind, len(ctx.functions)-1)
 }
 
 func (t Type) Function() Function {

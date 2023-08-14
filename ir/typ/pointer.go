@@ -14,20 +14,20 @@ func (ctx *Context) Pointer(typ Type) Pointer {
 	if typ.Kind() != PointerKind {
 		return Pointer{}
 	}
-	return ctx.pointer[typ.index()]
+	return ctx.pointers[typ.index()]
 }
 
 func (ctx *Context) PointerType(elem Type, addrspace int) Type {
 	ctx.lock.Lock()
 	defer ctx.lock.Unlock()
 
-	for index, value := range ctx.pointer {
+	for index, value := range ctx.pointers {
 		if value.Element == elem && value.AddrSpace == addrspace {
 			return typeFor(PointerKind, index)
 		}
 	}
-	ctx.pointer = append(ctx.pointer, Pointer{elem, addrspace})
-	return typeFor(PointerKind, len(ctx.pointer)-1)
+	ctx.pointers = append(ctx.pointers, Pointer{elem, addrspace})
+	return typeFor(PointerKind, len(ctx.pointers)-1)
 }
 
 func (t Type) Pointer() Pointer {
@@ -44,4 +44,8 @@ func (ptr Pointer) String() string {
 		space = "(" + strconv.Itoa(ptr.AddrSpace) + ")"
 	}
 	return "*" + space + ptr.Element.String()
+}
+
+func VoidPointer() Type {
+	return DefaultContext.PointerType(VoidType(), 0)
 }

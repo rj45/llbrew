@@ -22,6 +22,13 @@ func translateType(t llvm.Type) typ.Type {
 			params[i] = translateType(pt)
 		}
 		return typ.FunctionType([]typ.Type{translateType(t.ReturnType())}, params, t.IsFunctionVarArg())
+	case llvm.StructTypeKind:
+		se := t.StructElementTypes()
+		elems := make([]typ.Type, len(se))
+		for i, s := range se {
+			elems[i] = translateType(s)
+		}
+		return typ.StructType(elems, t.IsStructPacked())
 	case llvm.PointerTypeKind:
 		return typ.PointerType(translateType(t.ElementType()), t.PointerAddressSpace())
 	case llvm.VoidTypeKind:

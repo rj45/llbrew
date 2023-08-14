@@ -14,8 +14,9 @@ var _ = xform.Register(addStoreConstCopies,
 func addStoreConstCopies(it ir.Iter) {
 	instr := it.Instr()
 
-	if instr.Arg(0).IsConst() {
-		cp := it.Insert(op.Copy, instr.Arg(0).Type, instr.Arg(0))
-		instr.ReplaceArg(0, cp.Def(0))
+	arg := instr.Arg(1)
+	if arg.IsConst() {
+		cp := it.Insert(op.Copy, arg.Type, arg)
+		instr.ReplaceArg(1, cp.Def(0))
 	}
 }

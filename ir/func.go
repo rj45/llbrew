@@ -7,7 +7,6 @@ import (
 
 	"github.com/rj45/llir2asm/ir/reg"
 	"github.com/rj45/llir2asm/ir/typ"
-	"github.com/rj45/llir2asm/sizes"
 )
 
 // Func is a collection of Blocks, which comprise
@@ -29,6 +28,7 @@ type Func struct {
 	blocks []*Block
 
 	consts map[Const]*Value
+	regs   map[reg.Reg]*Value
 
 	// placeholders that need filling
 	placeholders map[string]*Value
@@ -93,8 +93,17 @@ func (fn *Func) ValueFor(t typ.Type, v interface{}) *Value {
 			return v.defs[0]
 		}
 	case reg.Reg:
-		val := fn.NewValue(typ.IntegerType(int(sizes.WordSize())))
+		if val, ok := fn.regs[v]; ok {
+			return val
+		}
+		if fn.regs == nil {
+			fn.regs = make(map[reg.Reg]*Value)
+		}
+
+		val := fn.NewValue(typ.IntegerWordType())
 		val.SetReg(v)
+		fn.regs[v] = val
+
 		return val
 	}
 
