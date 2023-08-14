@@ -3,7 +3,7 @@ package translate
 import (
 	"log"
 
-	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llbrew/ir/typ"
 	"tinygo.org/x/go-llvm"
 )
 

@@ -4,11 +4,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/rj45/llir2asm/asm"
-	"github.com/rj45/llir2asm/customasm"
-	"github.com/rj45/llir2asm/ir/reg"
-	"github.com/rj45/llir2asm/sizes"
-	"github.com/rj45/llir2asm/xform"
+	"github.com/rj45/llbrew/asm"
+	"github.com/rj45/llbrew/customasm"
+	"github.com/rj45/llbrew/ir/reg"
+	"github.com/rj45/llbrew/sizes"
+	"github.com/rj45/llbrew/xform"
 )
 
 const defaultArch = "rj32"

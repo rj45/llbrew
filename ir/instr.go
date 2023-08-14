@@ -4,7 +4,7 @@ import (
 	"go/token"
 	"log"
 
-	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llbrew/ir/typ"
 )
 
 // Instr is an instruction that may define one or more Values,

@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llbrew/ir"
 )
 
 type Pass int

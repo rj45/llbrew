@@ -13,8 +13,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/rj45/llir2asm/ir"
-	"github.com/rj45/llir2asm/ir/op"
+	"github.com/rj45/llbrew/ir"
+	"github.com/rj45/llbrew/ir/op"
 )
 
 // IRDecorator emits an HTML version of the IR

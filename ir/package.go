@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llbrew/ir/typ"
 )
 
 // Package is a collection of Funcs and Globals

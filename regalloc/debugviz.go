@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llbrew/ir"
 )
 
 // WriteGraphvizCFG emits a Graphviz dot file of the CFG

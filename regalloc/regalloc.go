@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/rj45/llir2asm/ir"
-	"github.com/rj45/llir2asm/ir/reg"
+	"github.com/rj45/llbrew/ir"
+	"github.com/rj45/llbrew/ir/reg"
 )
 
 type RegAlloc struct {

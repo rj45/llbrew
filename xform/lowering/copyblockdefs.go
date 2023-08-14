@@ -1,9 +1,9 @@
 package lowering
 
 import (
-	"github.com/rj45/llir2asm/ir"
-	"github.com/rj45/llir2asm/ir/op"
-	"github.com/rj45/llir2asm/xform"
+	"github.com/rj45/llbrew/ir"
+	"github.com/rj45/llbrew/ir/op"
+	"github.com/rj45/llbrew/xform"
 )
 
 var _ = xform.Register(copyBlockDefs,

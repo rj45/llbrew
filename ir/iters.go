@@ -1,7 +1,7 @@
 package ir
 
 import (
-	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llbrew/ir/typ"
 )
 
 // Iter is a iterator over instructions

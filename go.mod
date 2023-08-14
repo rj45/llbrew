@@ -1,4 +1,4 @@
-module github.com/rj45/llir2asm
+module github.com/rj45/llbrew
 
 go 1.20
 

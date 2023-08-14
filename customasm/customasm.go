@@ -18,7 +18,7 @@ func Assemble(src []byte, binfile string) error {
 		return ErrCustomASMNotInstalled
 	}
 
-	cpudef, err := os.CreateTemp("", "llir2asm_cpudef_*.asm")
+	cpudef, err := os.CreateTemp("", "llbrew_cpudef_*.asm")
 	if err != nil {
 		return fmt.Errorf("failed to create temp cpudef file for customasm: %w", err)
 	}
@@ -29,7 +29,7 @@ func Assemble(src []byte, binfile string) error {
 		return fmt.Errorf("failed to write cpudef: %w", err)
 	}
 
-	runasm, err := os.CreateTemp("", "llir2asm_run_*.asm")
+	runasm, err := os.CreateTemp("", "llbrew_run_*.asm")
 	if err != nil {
 		return fmt.Errorf("failed to create temp run.asm file for customasm: %w", err)
 	}
@@ -40,7 +40,7 @@ func Assemble(src []byte, binfile string) error {
 		return fmt.Errorf("failed to write runasm: %w", err)
 	}
 
-	asmtemp, err := os.CreateTemp("", "llir2asm_asm_*.asm")
+	asmtemp, err := os.CreateTemp("", "llbrew_asm_*.asm")
 	if err != nil {
 		log.Fatalln("failed to create temp asm file for customasm:", err)
 	}
@@ -52,7 +52,7 @@ func Assemble(src []byte, binfile string) error {
 	}
 
 	if binfile == "" {
-		bintemp, err := os.CreateTemp("", "llir2asm_*.bin")
+		bintemp, err := os.CreateTemp("", "llbrew_*.bin")
 		if err != nil {
 			log.Fatalln("failed to create temp bin file for customasm:", err)
 		}

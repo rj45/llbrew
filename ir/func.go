@@ -5,8 +5,8 @@ import (
 	"log"
 	"sort"
 
-	"github.com/rj45/llir2asm/ir/reg"
-	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llbrew/ir/reg"
+	"github.com/rj45/llbrew/ir/typ"
 )
 
 // Func is a collection of Blocks, which comprise

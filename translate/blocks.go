@@ -3,7 +3,7 @@ package translate
 import (
 	"fmt"
 
-	"github.com/rj45/llir2asm/ir/reg"
+	"github.com/rj45/llbrew/ir/reg"
 	"tinygo.org/x/go-llvm"
 )
 

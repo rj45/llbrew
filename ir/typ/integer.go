@@ -3,7 +3,7 @@ package typ
 import (
 	"strconv"
 
-	"github.com/rj45/llir2asm/sizes"
+	"github.com/rj45/llbrew/sizes"
 )
 
 type Integer int

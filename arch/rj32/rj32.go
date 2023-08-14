@@ -1,7 +1,7 @@
 package rj32
 
 import (
-	"github.com/rj45/llir2asm/arch"
+	"github.com/rj45/llbrew/arch"
 )
 
 type cpuArch struct{}

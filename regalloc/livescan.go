@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llbrew/ir"
 )
 
 var ErrEntryLiveIns = errors.New("entry block has live in values")

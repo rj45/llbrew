@@ -1,6 +1,6 @@
 package ir
 
-import "github.com/rj45/llir2asm/ir/typ"
+import "github.com/rj45/llbrew/ir/typ"
 
 // TypeDef is a type definition
 type TypeDef struct {

@@ -3,7 +3,7 @@ package ir
 import (
 	"log"
 
-	"github.com/rj45/llir2asm/ir/typ"
+	"github.com/rj45/llbrew/ir/typ"
 )
 
 // User uses and defines Values. Blocks and

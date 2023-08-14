@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/rj45/llir2asm/compile"
+	"github.com/rj45/llbrew/compile"
 )
 
 type testCase struct {

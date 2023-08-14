@@ -3,8 +3,8 @@ package asm
 import (
 	"fmt"
 
-	"github.com/rj45/llir2asm/ir"
-	"github.com/rj45/llir2asm/sizes"
+	"github.com/rj45/llbrew/ir"
+	"github.com/rj45/llbrew/sizes"
 )
 
 type CustomASM struct{}

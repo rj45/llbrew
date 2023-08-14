@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llbrew/ir"
 )
 
 func (cpuArch) Asm(op ir.Op, defs, args []string, emit func(string)) {

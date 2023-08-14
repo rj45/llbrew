@@ -1,8 +1,8 @@
 package rj32
 
 import (
-	"github.com/rj45/llir2asm/ir/op"
-	"github.com/rj45/llir2asm/xform"
+	"github.com/rj45/llbrew/ir/op"
+	"github.com/rj45/llbrew/xform"
 )
 
 func (cpuArch) XformTags2() []xform.Tag {

@@ -1,6 +1,6 @@
 package rj32
 
-import "github.com/rj45/llir2asm/ir/reg"
+import "github.com/rj45/llbrew/ir/reg"
 
 //go:generate go run github.com/dmarkham/enumer -type=Reg -transform lower
 

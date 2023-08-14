@@ -1,7 +1,7 @@
 package translate
 
 import (
-	"github.com/rj45/llir2asm/ir"
+	"github.com/rj45/llbrew/ir"
 	"tinygo.org/x/go-llvm"
 )
 

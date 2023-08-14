@@ -1,6 +1,6 @@
 package typ
 
-import "github.com/rj45/llir2asm/sizes"
+import "github.com/rj45/llbrew/sizes"
 
 type Type uint32
 
