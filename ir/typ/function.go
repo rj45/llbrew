@@ -66,17 +66,21 @@ func FunctionType(results []Type, params []Type, isVarArg bool) Type {
 }
 
 func (fn Function) String() string {
+	return fn.string(make(map[Type]string))
+}
+
+func (fn Function) string(refs map[Type]string) string {
 	strs := make([]string, len(fn.Params))
 	for i, param := range fn.Params {
-		strs[i] = param.String()
+		strs[i] = param.string(refs)
 	}
 	rstr := ""
 	if len(fn.Results) == 1 {
-		rstr = " " + fn.Results[0].String()
+		rstr = " " + fn.Results[0].string(refs)
 	} else {
 		strs := make([]string, len(fn.Params))
 		for i, param := range fn.Params {
-			strs[i] = param.String()
+			strs[i] = param.string(refs)
 		}
 		rstr = " (" + strings.Join(strs, ",") + ")"
 	}

@@ -11,10 +11,10 @@ define dso_local void @setS(%struct.S* noundef %0) #0 {
   store %struct.S* %0, %struct.S** %2, align 2
   %3 = load %struct.S*, %struct.S** %2, align 2
   %4 = getelementptr inbounds %struct.S, %struct.S* %3, i32 0, i32 0
-  store i16 1, i16* %4, align 2
+  store i16 9, i16* %4, align 2
   %5 = load %struct.S*, %struct.S** %2, align 2
   %6 = getelementptr inbounds %struct.S, %struct.S* %5, i32 0, i32 1
-  store i16 2, i16* %6, align 2
+  store i16 36, i16* %6, align 2
   ret void
 }
 

@@ -46,6 +46,14 @@ func (ptr Pointer) String() string {
 	return "*" + space + ptr.Element.String()
 }
 
+func (ptr Pointer) string(refs map[Type]string) string {
+	space := ""
+	if ptr.AddrSpace != 0 {
+		space = "(" + strconv.Itoa(ptr.AddrSpace) + ")"
+	}
+	return "*" + space + ptr.Element.string(refs)
+}
+
 func VoidPointer() Type {
 	return DefaultContext.PointerType(VoidType(), 0)
 }

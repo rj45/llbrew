@@ -2,14 +2,23 @@ package translate
 
 import (
 	"log"
+	"strings"
 
 	"github.com/rj45/llbrew/ir/typ"
 	"tinygo.org/x/go-llvm"
 )
 
 func translateType(t llvm.Type) typ.Type {
+	return translatePartialType(t, make(map[llvm.Type]typ.Type))
+}
+
+func translatePartialType(t llvm.Type, incomplete map[llvm.Type]typ.Type) typ.Type {
 	if t.IsNil() {
 		panic("nil type")
+	}
+
+	if it, ok := incomplete[t]; ok {
+		return it
 	}
 
 	switch t.TypeKind() {
@@ -19,18 +28,22 @@ func translateType(t llvm.Type) typ.Type {
 		pt := t.ParamTypes()
 		params := make([]typ.Type, len(pt))
 		for i, pt := range pt {
-			params[i] = translateType(pt)
+			params[i] = translatePartialType(pt, incomplete)
 		}
-		return typ.FunctionType([]typ.Type{translateType(t.ReturnType())}, params, t.IsFunctionVarArg())
+		return typ.FunctionType([]typ.Type{translatePartialType(t.ReturnType(), incomplete)}, params, t.IsFunctionVarArg())
 	case llvm.StructTypeKind:
+		name := strings.TrimPrefix(t.StructName(), "struct.")
+		ntype := typ.PartialStructType(name, t.IsStructPacked())
+		incomplete[t] = ntype
 		se := t.StructElementTypes()
 		elems := make([]typ.Type, len(se))
 		for i, s := range se {
-			elems[i] = translateType(s)
+			elems[i] = translatePartialType(s, incomplete)
 		}
-		return typ.StructType(elems, t.IsStructPacked())
+		typ.CompleteStructType(ntype, elems)
+		return ntype
 	case llvm.PointerTypeKind:
-		return typ.PointerType(translateType(t.ElementType()), t.PointerAddressSpace())
+		return typ.PointerType(translatePartialType(t.ElementType(), incomplete), t.PointerAddressSpace())
 	case llvm.VoidTypeKind:
 		return typ.VoidType()
 	case llvm.LabelTypeKind:
@@ -42,14 +55,16 @@ func translateType(t llvm.Type) typ.Type {
 }
 
 func translateFuncType(fn llvm.Value) typ.Type {
+	incomplete := make(map[llvm.Type]typ.Type)
+
 	if fn.Type().TypeKind() == llvm.FunctionTypeKind {
-		return translateType(fn.Type())
+		return translatePartialType(fn.Type(), incomplete)
 	}
 
 	params := make([]typ.Type, 0, fn.ParamsCount())
 
 	for param := fn.FirstParam(); !param.IsNil(); param = llvm.NextParam(param) {
-		params = append(params, translateType(param.Type()))
+		params = append(params, translatePartialType(param.Type(), incomplete))
 	}
 
 	for blk := fn.LastBasicBlock(); !blk.IsNil(); blk = llvm.PrevBasicBlock(blk) {
@@ -58,7 +73,7 @@ func translateFuncType(fn llvm.Value) typ.Type {
 				if inst.Type().TypeKind() == llvm.VoidTypeKind {
 					return typ.FunctionType(nil, params, false)
 				}
-				return typ.FunctionType([]typ.Type{translateType(inst.Type())}, params, false)
+				return typ.FunctionType([]typ.Type{translatePartialType(inst.Type(), incomplete)}, params, false)
 			}
 		}
 	}

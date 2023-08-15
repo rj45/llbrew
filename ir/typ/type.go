@@ -17,6 +17,10 @@ func typeFor(kind Kind, index int) Type {
 }
 
 func (t Type) String() string {
+	return t.string(make(map[Type]string))
+}
+
+func (t Type) string(refs map[Type]string) string {
 	switch t.Kind() {
 	case VoidKind:
 		return "void"
@@ -26,12 +30,16 @@ func (t Type) String() string {
 	case IntegerKind:
 		return t.Integer().String()
 	case FunctionKind:
-		return t.Function().String()
+		return t.Function().string(refs)
 	case StructKind:
-		return t.Struct().String()
+		if ref, found := refs[t]; found {
+			return ref
+		}
+		refs[t] = t.Struct().Reference()
+		return t.Struct().string(refs)
 	case ArrayKind:
 	case PointerKind:
-		return t.Pointer().String()
+		return t.Pointer().string(refs)
 	case VectorKind:
 	case MetadataKind:
 	case TokenKind:

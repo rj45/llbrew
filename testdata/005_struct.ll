@@ -9,8 +9,8 @@ target triple = "msp430-unknown-unknown-elf"
 
 ; Function Attrs: noinline nounwind optnone
 define dso_local void @setvars() #0 {
-  store i16 3, i16* getelementptr inbounds (%struct.anon, %struct.anon* @s, i32 0, i32 0), align 2
-  store i16 5, i16* getelementptr inbounds (%struct.anon, %struct.anon* @s, i32 0, i32 1), align 2
+  store i16 13, i16* getelementptr inbounds (%struct.anon, %struct.anon* @s, i32 0, i32 0), align 2
+  store i16 57, i16* getelementptr inbounds (%struct.anon, %struct.anon* @s, i32 0, i32 1), align 2
   ret void
 }
 

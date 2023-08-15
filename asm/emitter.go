@@ -237,6 +237,8 @@ func (emit *Emitter) global(glob *ir.Global) {
 			switch t.Kind() {
 			case typ.IntegerKind:
 				emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val[i])))
+			case typ.PointerKind:
+				emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", 0)))
 			default:
 				panic("implement more types")
 			}
