@@ -81,4 +81,25 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 		}
 
 	}
+	trans.fixupInstruction(ninstr)
+}
+
+func (trans *translator) fixupInstruction(instr *ir.Instr) {
+	if instr.Op == op.Store {
+		swap := false
+		// operands can be backwards sometimes
+		if instr.Arg(1).Type.Kind() == typ.PointerKind {
+			def := instr.Arg(1).Def().Instr()
+			if def != nil && def.Op == op.Alloca {
+				swap = true
+			}
+		}
+		// todo: add other situations
+
+		if swap {
+			arg := instr.Arg(0)
+			instr.RemoveArg(arg)
+			instr.InsertArg(-1, arg)
+		}
+	}
 }

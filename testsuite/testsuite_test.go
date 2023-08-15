@@ -45,7 +45,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func Test(t *testing.T) {
+func TestOptimized(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -53,6 +53,24 @@ func Test(t *testing.T) {
 			c := compile.Compiler{
 				OptSize:  1,
 				OptSpeed: 1,
+			}
+
+			err := c.Compile(tc.filename)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestUnoptimized(t *testing.T) {
+	for _, tc := range testcases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			c := compile.Compiler{
+				OptSize:  0,
+				OptSpeed: 0,
 			}
 
 			err := c.Compile(tc.filename)

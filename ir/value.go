@@ -40,7 +40,7 @@ const (
 	InArgSlot
 
 	// Spill slots are an area of the stack reserved for register spills.
-	InSpillSlot
+	InSpillArea
 )
 
 // init initializes the Value.
@@ -105,7 +105,7 @@ func (val *Value) IsDefinedByOp(op Op) bool {
 // NeedsReg indicates if this Value should be allocated
 // a register
 func (val *Value) NeedsReg() bool {
-	return !val.IsConst() && !val.IsBlock()
+	return !val.IsConst() && !val.IsBlock() && !val.InSpillArea()
 }
 
 // stg is the storage for a value
@@ -225,28 +225,24 @@ func (val *Value) SetArgSlot(slot int) {
 
 type spillStg uint8
 
-func (spillStg) Location() Location { return InSpillSlot }
+func (spillStg) Location() Location { return InSpillArea }
 
-// InSpillSlot returns whether the value in one of the spill slots on the stack.
-func (val *Value) InSpillSlot() bool {
-	return val.Location() == InSpillSlot
+// InSpillArea returns whether the value is stored in the spill area of the stack.
+func (val *Value) InSpillArea() bool {
+	return val.Location() == InSpillArea
 }
 
-// SpillSlot returns which spill slot the Value is in, or -1 if not in a spill slot.
-func (val *Value) SpillSlot() int {
-	if val.Location() == InSpillSlot {
+// SpillAddress returns which spill slot the Value is in, or -1 if not in a spill slot.
+func (val *Value) SpillAddress() int {
+	if val.Location() == InSpillArea {
 		return int(val.stg.(spillStg))
 	}
 	return -1
 }
 
-// SetSpillSlot puts the Value in the specified spill slot on the stack.
-func (val *Value) SetSpillSlot(slot int) {
-	val.stg = spillStg(slot)
-
-	if val.Func().numSpillSlots < slot+1 {
-		val.Func().numSpillSlots = slot + 1
-	}
+// SetSpillAddress puts the Value at the specified spill address on the stack.
+func (val *Value) SetSpillAddress(address int) {
+	val.stg = spillStg(address)
 }
 
 // const

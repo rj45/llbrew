@@ -19,9 +19,9 @@ type Func struct {
 	Referenced bool
 	NumCalls   int
 
-	numArgSlots   int
-	numParamSlots int
-	numSpillSlots int
+	numArgSlots    int
+	numParamSlots  int
+	stackSpillSize int
 
 	pkg *Package
 
@@ -125,6 +125,19 @@ func (fn *Func) ValueFor(t typ.Type, v interface{}) *Value {
 	}
 
 	panic(fmt.Sprintf("can't get value for %T %#v", v, v))
+}
+
+// AllocSpillStorage will allocate the number of addressable units as spill area
+// and return the current offset for the spill area in addressible units.
+func (fn *Func) AllocSpillStorage(size int) int {
+	address := fn.stackSpillSize
+	fn.stackSpillSize += size
+	return address
+}
+
+// SpillAreaSize indicates the size of the spill area of the stack
+func (fn *Func) SpillAreaSize() int {
+	return fn.stackSpillSize
 }
 
 // Placeholders

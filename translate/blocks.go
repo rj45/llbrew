@@ -51,7 +51,7 @@ func (trans *translator) translateBlocks(fn llvm.Value) {
 			operand := br.Operand(i)
 			if operand.Type().TypeKind() == llvm.LabelTypeKind {
 				for b := fn.FirstBasicBlock(); !b.IsNil(); b = llvm.NextBasicBlock(b) {
-					if b.AsValue().Name() == operand.Name() {
+					if b.AsValue() == operand {
 						bblk := trans.blkmap[b]
 						nblk.AddSucc(bblk)
 						bblk.AddPred(nblk)

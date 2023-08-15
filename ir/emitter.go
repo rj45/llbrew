@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"sort"
 	"strings"
 )
@@ -271,15 +270,13 @@ func (in *Instr) Emit(out io.Writer, dec Decorator) {
 						str += ", "
 					}
 
-					if argn >= len(in.blk.args) {
-						log.Panicf("missing args on block args: %v  defs: %v", in.blk.args, succ.defs)
-						continue
+					if argn < len(in.blk.args) {
+						//log.Panicf("missing args on block args: %v  defs: %v", in.blk.args, succ.defs)
+
+						arg := in.blk.args[argn]
+						argn++
+						str += dec.WrapLabel(arg.String(), arg)
 					}
-
-					arg := in.blk.args[argn]
-					argn++
-
-					str += dec.WrapLabel(arg.String(), arg)
 				}
 				str += ")"
 			}
@@ -313,8 +310,8 @@ func (val *Value) String() string {
 	if val.InParamSlot() {
 		return fmt.Sprintf("%s_sp%d", val.IDString(), val.ParamSlot())
 	}
-	if val.InSpillSlot() {
-		return fmt.Sprintf("%s_ss%d", val.IDString(), val.SpillSlot())
+	if val.InSpillArea() {
+		return fmt.Sprintf("%s_ss%d", val.IDString(), val.SpillAddress())
 	}
 	return val.IDString()
 }

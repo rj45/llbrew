@@ -62,7 +62,7 @@ func offset(instr *ir.Instr) *ir.Instr {
 	}
 
 	add := instr.Arg(0).Def().Instr()
-	if add.Op == op.Add && add.Arg(1).IsConst() && add.Def(0).NumUses() == 1 {
+	if add.Op == op.Add && (add.Arg(1).IsConst() || add.Arg(1).InSpillArea()) && add.Def(0).NumUses() == 1 {
 		return add
 	}
 	return nil
