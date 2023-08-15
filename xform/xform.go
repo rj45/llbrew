@@ -167,15 +167,15 @@ next:
 			}
 		}
 
-		// reactivate once per function
-		xformers[i].disabled = false
+		// make a copy -- avoids global mutable state
+		xform := xformers[i]
 
 		if xf.op != nil {
-			opXforms[xf.op] = append(opXforms[xf.op], &xformers[i])
+			opXforms[xf.op] = append(opXforms[xf.op], &xform)
 		} else if xf.once {
-			anyOnceXforms = append(anyOnceXforms, &xformers[i])
+			anyOnceXforms = append(anyOnceXforms, &xform)
 		} else {
-			otherXforms = append(otherXforms, &xformers[i])
+			otherXforms = append(otherXforms, &xform)
 		}
 		active = append(active, xf.name)
 	}

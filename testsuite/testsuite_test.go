@@ -64,7 +64,7 @@ func TestOptimized(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 			c := compile.Compiler{
 				OptSize:  1,
 				OptSpeed: 1,
@@ -82,7 +82,7 @@ func TestUnoptimized(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			c := compile.Compiler{
 				OptSize:  0,
