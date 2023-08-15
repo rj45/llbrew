@@ -1,10 +1,13 @@
 package testsuite
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/rj45/llbrew/compile"
@@ -34,10 +37,19 @@ func TestMain(m *testing.M) {
 		if path.Ext(entry.Name()) == ".ll" {
 			filename := path.Join(testdata, entry.Name())
 
+			resultfile := strings.Replace(filename, ".ll", ".txt", 1)
+			buf, err := os.ReadFile(resultfile)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+
+			result := string(bytes.TrimSpace(buf))
+
 			testcases = append(testcases, testCase{
 				name:     entry.Name(),
 				filename: filename,
-				result:   "42",
+				result:   result,
 			})
 		}
 	}
@@ -67,15 +79,22 @@ func TestUnoptimized(t *testing.T) {
 	for _, tc := range testcases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			c := compile.Compiler{
 				OptSize:  0,
 				OptSpeed: 0,
+				Run:      true,
 			}
 
 			err := c.Compile(tc.filename)
 			if err != nil {
-				t.Fatal(err)
+				if e, ok := err.(*exec.ExitError); ok {
+					if fmt.Sprintf("%d", e.ExitCode()) != tc.result {
+						t.Errorf("Expected run to exit with %s but got %d", tc.result, e.ExitCode())
+					}
+				} else {
+					t.Fatal(err)
+				}
 			}
 		})
 	}

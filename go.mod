@@ -1,6 +1,6 @@
 module github.com/rj45/llbrew
 
-go 1.20
+go 1.21
 
 require (
 	github.com/dmarkham/enumer v1.5.8 // indirect

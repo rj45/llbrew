@@ -51,21 +51,11 @@ func Assemble(src []byte, binfile string) error {
 		return fmt.Errorf("failed to write asm: %w", err)
 	}
 
-	if binfile == "" {
-		bintemp, err := os.CreateTemp("", "llbrew_*.bin")
-		if err != nil {
-			log.Fatalln("failed to create temp bin file for customasm:", err)
-		}
-		bintemp.Close() // customasm will write to it
-		defer os.Remove(bintemp.Name())
-		binfile = bintemp.Name()
-	}
-
 	asmcmd := exec.Command("customasm", "-q",
 		"-f", arch.AssemblerFormat(),
 		"-o", binfile,
 		cpudef.Name(), runasm.Name(), asmtemp.Name())
-	log.Println(asmcmd)
+	// log.Println(asmcmd)
 	asmcmd.Stderr = os.Stderr
 	asmcmd.Stdout = os.Stdout
 

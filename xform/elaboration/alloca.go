@@ -1,8 +1,6 @@
 package elaboration
 
 import (
-	"fmt"
-
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
 	"github.com/rj45/llbrew/ir/reg"
@@ -39,8 +37,6 @@ func alloca(it ir.Iter) {
 	if num == 0 {
 		num++
 	}
-
-	fmt.Println("Type", t.String(), "arg0 type", instr.Arg(0).Type, "num", num, "size", size, "ttl", num*size)
 
 	addr := instr.Func().AllocSpillStorage(num * size)
 

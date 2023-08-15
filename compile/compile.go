@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/rj45/llbrew/arch"
 	"github.com/rj45/llbrew/asm"
 	"github.com/rj45/llbrew/customasm"
+	"github.com/rj45/llbrew/emu"
 	"github.com/rj45/llbrew/html"
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/regalloc"
@@ -47,6 +49,9 @@ type Compiler struct {
 	DumpSSA string
 	OutFile string
 	BinFile string
+
+	Run      bool
+	RunTrace bool
 
 	ctx       llvm.Context
 	mod       llvm.Module
@@ -108,6 +113,16 @@ func (c *Compiler) Compile(filename string) error {
 		c.prog.Emit(dump, ir.SSAString{})
 	}
 
+	if c.Run && c.BinFile == "" {
+		bintemp, err := os.CreateTemp("", "llbrew_*.bin")
+		if err != nil {
+			return fmt.Errorf("failed to create temp bin file for customasm: %w", err)
+		}
+		bintemp.Close() // customasm will write to it
+		defer os.Remove(bintemp.Name())
+		c.BinFile = bintemp.Name()
+	}
+
 	out := createFile(c.OutFile)
 	defer out.Close()
 	outwr := io.Writer(out)
@@ -124,6 +139,10 @@ func (c *Compiler) Compile(filename string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if c.Run {
+		return emu.Run(c.BinFile, c.RunTrace)
 	}
 
 	return nil

@@ -6,6 +6,7 @@ import (
 
 	"github.com/rj45/llbrew/asm"
 	"github.com/rj45/llbrew/customasm"
+	"github.com/rj45/llbrew/emu"
 	"github.com/rj45/llbrew/ir/reg"
 	"github.com/rj45/llbrew/sizes"
 	"github.com/rj45/llbrew/xform"
@@ -20,6 +21,7 @@ type Architecture interface {
 	xform.Arch
 	asm.Arch
 	customasm.Arch
+	emu.Arch
 }
 
 var arch Architecture
@@ -52,4 +54,5 @@ func SetArch(name string) {
 	xform.SetArch(arch)
 	asm.SetArch(arch)
 	customasm.SetArch(arch)
+	emu.SetArch(arch)
 }

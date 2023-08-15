@@ -1,8 +1,8 @@
 struct S { int x; int y; };
 
 void setS(struct S *p) {
-    p->x = 1;
-    p->y = 2;
+    p->x = 9;
+    p->y = 54;
 }
 
 int main() {

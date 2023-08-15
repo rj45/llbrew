@@ -22,6 +22,8 @@ func main() {
 	var irfile = flag.String("ir", "", "Dump pre-optimized llir2asm IR to file")
 	var dumpssa = flag.String("dumpssa", "", "Dump ssa.html for specified function")
 	var binfile = flag.String("bin", "", "Output binary using customasm")
+	var run = flag.Bool("run", false, "Run the program using the target emulator")
+	var trace = flag.Bool("trace", false, "Run the program in the emulator with tracing turned on")
 
 	flag.Parse()
 	c := compile.Compiler{}
@@ -49,6 +51,8 @@ func main() {
 	c.DumpSSA = *dumpssa
 	c.OutFile = *outfile
 	c.BinFile = *binfile
+	c.Run = *run
+	c.RunTrace = *trace
 
 	err := c.Compile(flag.Args()[0])
 	if err != nil {

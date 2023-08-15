@@ -5,8 +5,8 @@
 struct { int x; int y; } s;
 
 void setvars() {
-    s.x = 3;
-	s.y = 5;
+    s.x = 13;
+	s.y = 57;
 }
 
 int main()
