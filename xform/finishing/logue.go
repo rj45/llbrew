@@ -4,7 +4,6 @@ import (
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
 	"github.com/rj45/llbrew/ir/reg"
-	"github.com/rj45/llbrew/ir/typ"
 	"github.com/rj45/llbrew/sizes"
 	"github.com/rj45/llbrew/xform"
 )
@@ -70,6 +69,7 @@ func logue(it ir.Iter) {
 		return // empty fn
 	}
 	fn := it.Block().Func()
+	types := fn.Types()
 
 	spillAreaSize := fn.SpillAreaSize()
 	spillOffset := 0 // todo: will be > 0 when param area is allocated
@@ -87,7 +87,7 @@ func logue(it ir.Iter) {
 			arg := instr.Arg(a)
 			if arg.InSpillArea() {
 				actualAddress := arg.SpillAddress() + spillOffset
-				arg.ReplaceUsesWith(fn.ValueFor(typ.IntegerWordType(), actualAddress))
+				arg.ReplaceUsesWith(fn.ValueFor(types.IntegerWordType(), actualAddress))
 			}
 		}
 
@@ -138,18 +138,18 @@ func logue(it ir.Iter) {
 
 	// the add is put first because some arches only allow positive load/store offsets
 	size := sizes.WordSize()
-	spval := it.Insert(op.Add, typ.PointerType(typ.VoidType(), 0), reg.SP, -frameSize).Def(0)
+	spval := it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, -frameSize).Def(0)
 	spval.SetReg(reg.SP)
 
 	offset = spillAreaSize
 	for _, sreg := range reg.SavedRegs {
 		if _, found := saveRegMap[sreg]; found {
-			it.Insert(op.Store, typ.IntegerWordType(), spval, offset, sreg)
+			it.Insert(op.Store, types.IntegerWordType(), spval, offset, sreg)
 			offset += size
 		}
 	}
 	if _, found := saveRegMap[reg.RA]; found {
-		it.Insert(op.Store, typ.PointerType(typ.VoidType(), 0), spval, offset, reg.RA)
+		it.Insert(op.Store, types.PointerType(types.VoidType(), 0), spval, offset, reg.RA)
 		offset += size
 	}
 
@@ -159,17 +159,17 @@ func logue(it ir.Iter) {
 			offset := spillAreaSize
 			for _, sreg := range reg.SavedRegs {
 				if _, found := saveRegMap[sreg]; found {
-					load := it.Insert(op.Load, typ.IntegerWordType(), spval, offset)
+					load := it.Insert(op.Load, types.IntegerWordType(), spval, offset)
 					load.Def(0).SetReg(sreg)
 					offset += size
 				}
 			}
 			if _, found := saveRegMap[reg.RA]; found {
-				load := it.Insert(op.Load, typ.PointerType(typ.VoidType(), 0), spval, offset)
+				load := it.Insert(op.Load, types.PointerType(types.VoidType(), 0), spval, offset)
 				load.Def(0).SetReg(reg.RA)
 				offset += size
 			}
-			spval2 := it.Insert(op.Add, typ.PointerType(typ.VoidType(), 0), reg.SP, frameSize).Def(0)
+			spval2 := it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, frameSize).Def(0)
 			spval2.SetReg(reg.SP)
 		}
 	}

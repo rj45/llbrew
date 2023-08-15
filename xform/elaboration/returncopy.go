@@ -19,7 +19,7 @@ func returnCopy(it ir.Iter) {
 		return
 	}
 
-	cp := it.Insert(op.Copy, 0, ret.Args())
+	cp := it.Insert(op.Copy, nil, ret.Args())
 
 	for i := 0; i < ret.NumArgs(); i++ {
 		cp.AddDef(cp.Func().NewValue(ret.Arg(i).Type))

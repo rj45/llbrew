@@ -2,18 +2,22 @@ package typ
 
 type Void struct{}
 
-func (ctx *Context) IsVoid(typ Type) bool {
-	return typ.Kind() == VoidKind
+var _ Type = Void{}
+
+func (v Void) Kind() Kind {
+	return VoidKind
 }
 
-func (ctx *Context) VoidType() Type {
-	return typeFor(VoidKind, 0)
+func (v Void) SizeOf() int {
+	return 0
 }
 
-func (t Type) IsVoid() bool {
-	return t.Kind() == VoidKind
+func (v Void) String() string {
+	return "void"
 }
 
-func VoidType() Type {
-	return DefaultContext.VoidType()
+func (v Void) ZeroValue() interface{} {
+	return 0
 }
+
+func (v Void) private() {}

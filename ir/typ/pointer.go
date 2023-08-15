@@ -1,59 +1,42 @@
 package typ
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/rj45/llbrew/sizes"
+)
 
 type Pointer struct {
 	Element   Type
 	AddrSpace int
+
+	types *Types
 }
 
-func (ctx *Context) Pointer(typ Type) Pointer {
-	ctx.lock.RLock()
-	defer ctx.lock.RUnlock()
+var _ Type = &Pointer{}
 
-	if typ.Kind() != PointerKind {
-		return Pointer{}
-	}
-	return ctx.pointers[typ.index()]
+func (ptr *Pointer) Kind() Kind {
+	return PointerKind
 }
 
-func (ctx *Context) PointerType(elem Type, addrspace int) Type {
-	ctx.lock.Lock()
-	defer ctx.lock.Unlock()
-
-	for index, value := range ctx.pointers {
-		if value.Element == elem && value.AddrSpace == addrspace {
-			return typeFor(PointerKind, index)
-		}
-	}
-	ctx.pointers = append(ctx.pointers, Pointer{elem, addrspace})
-	return typeFor(PointerKind, len(ctx.pointers)-1)
+func (ptr *Pointer) SizeOf() int {
+	return sizes.PointerSize()
 }
 
-func (t Type) Pointer() Pointer {
-	return DefaultContext.Pointer(t)
+func (ptr *Pointer) String() string {
+	return ptr.string(make(map[Type]string))
 }
 
-func PointerType(elem Type, addrspace int) Type {
-	return DefaultContext.PointerType(elem, addrspace)
+func (ptr *Pointer) ZeroValue() interface{} {
+	return 0
 }
 
-func (ptr Pointer) String() string {
-	space := ""
-	if ptr.AddrSpace != 0 {
-		space = "(" + strconv.Itoa(ptr.AddrSpace) + ")"
-	}
-	return "*" + space + ptr.Element.String()
-}
+func (ptr *Pointer) private() {}
 
 func (ptr Pointer) string(refs map[Type]string) string {
 	space := ""
 	if ptr.AddrSpace != 0 {
 		space = "(" + strconv.Itoa(ptr.AddrSpace) + ")"
 	}
-	return "*" + space + ptr.Element.string(refs)
-}
-
-func VoidPointer() Type {
-	return DefaultContext.PointerType(VoidType(), 0)
+	return "*" + space + ptr.types.string(ptr.Element, refs)
 }

@@ -191,7 +191,7 @@ func (in *Instr) Emit(out io.Writer, dec Decorator) {
 			defstr += ", "
 		}
 		defstr += dec.WrapLabel(def.String(), def)
-		if def.Type != 0 {
+		if def.Type != nil {
 			typstr := dec.WrapType(def.Type.String())
 			defstr += fmt.Sprintf(":%s", typstr)
 		}

@@ -22,3 +22,7 @@ func (glob *Global) String() string {
 func (glob *Global) Package() *Package {
 	return glob.pkg
 }
+
+func (glob *Global) Types() *typ.Types {
+	return glob.pkg.prog.types
+}

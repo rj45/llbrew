@@ -20,7 +20,7 @@ func swapIfBranches(it ir.Iter) {
 	if instr.Block().Succ(1).Index() != instr.Block().Index()+1 {
 		if instr.Block().Succ(0).Index() == instr.Block().Index()+1 {
 			if opper, ok := compare.Op.(interface{ Opposite() op.Op }); ok {
-				compare.Update(opper.Opposite(), 0, compare.Args())
+				compare.Update(opper.Opposite(), nil, compare.Args())
 				it.Changed()
 			} else {
 				// not := it.Insert(op.Not, compare.Def(0).Type, compare.Def(0))

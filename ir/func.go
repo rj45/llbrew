@@ -14,7 +14,7 @@ import (
 type Func struct {
 	Name     string
 	FullName string
-	Sig      typ.Type
+	Sig      *typ.Function
 
 	Referenced bool
 	NumCalls   int
@@ -53,6 +53,10 @@ const blockSlabSize = 4
 // Package returns the Func's Package
 func (fn *Func) Package() *Package {
 	return fn.pkg
+}
+
+func (fn *Func) Types() *typ.Types {
+	return fn.pkg.prog.types
 }
 
 func (fn *Func) NumValues() int {
@@ -100,7 +104,7 @@ func (fn *Func) ValueFor(t typ.Type, v interface{}) *Value {
 			fn.regs = make(map[reg.Reg]*Value)
 		}
 
-		val := fn.NewValue(typ.IntegerWordType())
+		val := fn.NewValue(t)
 		val.SetReg(v)
 		fn.regs[v] = val
 

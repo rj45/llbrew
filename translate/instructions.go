@@ -12,7 +12,7 @@ func (trans *translator) translateInstructions(fn llvm.Value) {
 
 		for instr := blk.FirstInstruction(); !instr.IsNil(); instr = llvm.NextInstruction(instr) {
 			if instr.InstructionOpcode() == llvm.PHI {
-				def := trans.fn.NewValue(translateType(instr.Type()))
+				def := trans.fn.NewValue(trans.translateType(instr.Type()))
 				nblk.AddDef(def)
 				trans.valuemap[instr] = def
 
@@ -36,7 +36,7 @@ func (trans *translator) translateInstructions(fn llvm.Value) {
 				}
 			}
 
-			ninstr := trans.fn.NewInstr(opcode, translateType(instr.Type()))
+			ninstr := trans.fn.NewInstr(opcode, trans.translateType(instr.Type()))
 			nblk.InsertInstr(-1, ninstr)
 			trans.instrmap[instr] = ninstr
 			if ninstr.NumDefs() > 0 {

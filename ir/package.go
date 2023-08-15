@@ -25,10 +25,14 @@ func (pkg *Package) Program() *Program {
 	return pkg.prog
 }
 
+func (pkg *Package) Types() *typ.Types {
+	return pkg.prog.types
+}
+
 // funcs
 
 // NewFunc adds a func to the list
-func (pkg *Package) NewFunc(name string, sig typ.Type) *Func {
+func (pkg *Package) NewFunc(name string, sig *typ.Function) *Func {
 	fn := &Func{
 		Name:     name,
 		FullName: pkg.genUniqueName(name),
@@ -77,7 +81,7 @@ func (pkg *Package) NewStringLiteral(funcname, str string) *Global {
 
 	// move to building a global as the string literal
 	name := pkg.makeUnique(funcname)
-	glob = pkg.NewGlobal(name, typ.StringType())
+	glob = pkg.NewGlobal(name, pkg.prog.types.StringType())
 	glob.Value = ConstFor(str)
 	pkg.prog.registerStringLiteral(glob)
 

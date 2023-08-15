@@ -1,6 +1,10 @@
 package ir
 
-import "go/token"
+import (
+	"go/token"
+
+	"github.com/rj45/llbrew/ir/typ"
+)
 
 // Program is a collection of packages,
 // which comprise a whole program.
@@ -11,6 +15,14 @@ type Program struct {
 
 	takenNames map[string]bool
 	strings    map[string]*Global
+
+	types *typ.Types
+}
+
+func NewProgram() *Program {
+	return &Program{
+		types: &typ.Types{},
+	}
 }
 
 // Packages returns a copy of the package list
@@ -67,6 +79,10 @@ func (prog *Program) StringLiteral(str string, fullname string) *Global {
 		return glob
 	}
 	return nil
+}
+
+func (prog *Program) Types() *typ.Types {
+	return prog.types
 }
 
 func (prog *Program) registerStringLiteral(glob *Global) {

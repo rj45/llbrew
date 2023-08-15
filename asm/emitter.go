@@ -95,14 +95,14 @@ func (emit *Emitter) assemble(fn *ir.Func) {
 
 func (emit *Emitter) fn(fn *ir.Func) {
 	emit.ensureSection(Code)
-	params := fn.Sig.Function().Params
+	params := fn.Sig.Params
 	pstrs := make([]string, len(params))
 
 	for i, param := range params {
 		pstrs[i] = param.String()
 	}
 
-	res := fn.Sig.Function().Results
+	res := fn.Sig.Results
 	resstr := ""
 	if len(res) == 1 {
 		resstr = " " + res[0].String()
@@ -222,7 +222,7 @@ func (emit *Emitter) global(glob *ir.Global) {
 	}
 	emit.line("%s:", emit.fmter.GlobalLabel(glob))
 	if glob.Value == nil {
-		size := glob.Type.Integer().Bits() / sizes.MinAddressableBits()
+		size := glob.Type.(*typ.Integer).Bits() / sizes.MinAddressableBits()
 		emit.line("%s", emit.fmter.Reserve(int(size)))
 	} else if str, ok := ir.StringValue(glob.Value); ok {
 		emit.line("%s", emit.fmter.Word(emit.fmter.PCRelAddress(int(sizes.WordSize()*2))))
@@ -232,7 +232,7 @@ func (emit *Emitter) global(glob *ir.Global) {
 	} else if val, ok := ir.IntValue(glob.Value); ok {
 		emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val)))
 	} else if val, ok := ir.StructValue(glob.Value); ok {
-		types := glob.Type.Struct().Elements
+		types := glob.Type.(*typ.Struct).Elements
 		for i, t := range types {
 			switch t.Kind() {
 			case typ.IntegerKind:

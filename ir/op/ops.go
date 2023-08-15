@@ -157,6 +157,8 @@ const (
 var opDefs = [...]def{
 	Copy:         move,
 	Store:        sink,
+	Jump:         sink,
+	If:           sink,
 	Add:          commute,
 	Mul:          commute,
 	And:          commute,

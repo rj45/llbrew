@@ -48,5 +48,5 @@ func mulByConst(it ir.Iter) {
 		return
 	}
 
-	it.Update(op.Shl, 0, instr.Arg(0), instr.Func().ValueFor(instr.Arg(0).Type, int(n)))
+	it.Update(op.Shl, nil, instr.Arg(0), instr.Func().ValueFor(instr.Arg(0).Type, int(n)))
 }

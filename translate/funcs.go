@@ -12,7 +12,7 @@ func (trans *translator) translateFunctions() {
 }
 
 func (trans *translator) translateFunction(fn llvm.Value) {
-	trans.fn = trans.pkg.NewFunc(fn.Name(), translateFuncType(fn))
+	trans.fn = trans.pkg.NewFunc(fn.Name(), trans.translateFuncType(fn))
 
 	trans.fn.Referenced = true
 

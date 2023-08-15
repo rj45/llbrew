@@ -3,7 +3,6 @@ package simplification
 import (
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
-	"github.com/rj45/llbrew/ir/typ"
 	"github.com/rj45/llbrew/xform"
 )
 
@@ -21,7 +20,7 @@ func loadOffset(it ir.Iter) {
 
 	add := offset(instr)
 	if add == nil {
-		instr.InsertArg(1, instr.Func().ValueFor(typ.IntegerWordType(), 0))
+		instr.InsertArg(1, instr.Func().ValueFor(instr.Func().Types().IntegerWordType(), 0))
 		return
 	}
 
@@ -46,7 +45,7 @@ func storeOffset(it ir.Iter) {
 
 	add := offset(instr)
 	if add == nil {
-		instr.InsertArg(1, instr.Func().ValueFor(typ.IntegerWordType(), 0))
+		instr.InsertArg(1, instr.Func().ValueFor(instr.Func().Types().IntegerWordType(), 0))
 		return
 	}
 

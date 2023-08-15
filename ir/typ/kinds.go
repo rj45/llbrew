@@ -7,12 +7,8 @@ const (
 	FloatKind
 	DoubleKind
 	IntegerKind
-	LabelKind
 	FunctionKind
 	StructKind
 	ArrayKind
 	PointerKind
-	VectorKind
-	MetadataKind
-	TokenKind
 )

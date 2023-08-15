@@ -47,7 +47,7 @@ func copyBlockArgs(it ir.Iter) {
 		return
 	}
 
-	instr := it.Insert(op.Copy, 0)
+	instr := it.Insert(op.Copy, nil)
 
 	for a := 0; a < blk.NumArgs(); a++ {
 		arg := blk.Arg(a)

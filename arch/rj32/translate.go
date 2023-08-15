@@ -48,9 +48,9 @@ func translate(it ir.Iter) {
 	case op.Copy:
 		// copy is done in the finishing stage, after register allocation
 	case op.Ret, op.Jump:
-		it.Update(directTranslate[instr.Op.(op.Op)], 0, instr.Args())
+		it.Update(directTranslate[instr.Op.(op.Op)], nil, instr.Args())
 	case op.Add, op.Sub, op.And, op.Or, op.Xor, op.Shl, op.AShr, op.LShr:
-		it.Update(twoOperandTranslations[instr.Op.(op.Op)], 0, instr.Args())
+		it.Update(twoOperandTranslations[instr.Op.(op.Op)], nil, instr.Args())
 	// case op.Not, op.Negate:
 	// 	it.Update(oneOperandTranslations[instr.Op.(op.Op)], nil, instr.Args())
 	case op.Equal, op.NotEqual, op.Less, op.LessEqual, op.Greater, op.GreaterEqual:
@@ -68,7 +68,7 @@ func translate(it ir.Iter) {
 		if branchOp == 0 {
 			log.Panicf("failed to translate compare %s", compare.Op.(op.Op))
 		}
-		it.Update(branchOp, 0, compare.Args())
+		it.Update(branchOp, nil, compare.Args())
 		if compare.Def(0).NumUses() == 0 {
 			it.RemoveInstr(compare)
 		}
@@ -98,12 +98,12 @@ func translateLoadStore(it ir.Iter) {
 	switch instr.Op {
 	case op.Add:
 		if instr.NumArgs() == 2 && instr.Def(0).Reg() == instr.Arg(0).Reg() {
-			it.Update(Add, 0, instr.Args())
+			it.Update(Add, nil, instr.Args())
 		}
 	case op.Load:
 		it.Update(Load, instr.Def(0).Type, instr.Args())
 	case op.Store:
-		it.Update(Store, 0, instr.Arg(0), instr.Arg(1), instr.Arg(2))
+		it.Update(Store, nil, instr.Arg(0), instr.Arg(1), instr.Arg(2))
 	}
 }
 

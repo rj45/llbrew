@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rj45/llbrew/arch"
 	"github.com/rj45/llbrew/asm"
 	"github.com/rj45/llbrew/customasm"
 	"github.com/rj45/llbrew/emu"
@@ -149,8 +148,6 @@ func (c *Compiler) Compile(filename string) error {
 }
 
 func (c *Compiler) transformProgram() error {
-	arch.SetArch("rj32")
-
 	for _, pkg := range c.prog.Packages() {
 		for _, fn := range pkg.Funcs() {
 			var w dumper = nopDumper{}

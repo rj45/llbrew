@@ -12,6 +12,7 @@ type iNodeID uint32
 
 type iGraph struct {
 	fn      *ir.Func
+	ra      *RegAlloc
 	nodes   []iNode
 	valNode map[ir.ID]iNodeID
 
@@ -198,6 +199,7 @@ func (ig *iGraph) merge(var1 ir.ID, var2 ir.ID) bool {
 // to aide in colouring the graph with non-interfering registers.
 func (ra *RegAlloc) buildInterferenceGraph() {
 	ig := &ra.iGraph
+	ig.ra = ra
 	ig.fn = ra.fn
 	fn := ra.fn
 
@@ -486,7 +488,7 @@ func (nd *iNode) findMostUsedMoveColour(ig *iGraph, id iNodeID, checked map[iNod
 		}
 
 		// if it doesn't interfere  and the move colour is caller saved if it needs to be
-		if !interferes && (!nd.callerSaved || moveColour >= savedStart) {
+		if !interferes && (!nd.callerSaved || moveColour >= ig.ra.savedStart) {
 			val := ig.nodes[mv].val.ValueIn(ig.fn)
 			if val.NumUses() > uses {
 				uses = val.NumUses()
@@ -528,7 +530,7 @@ func (nd *iNode) pickColour(ig *iGraph) {
 	start := uint16(1)
 	if nd.callerSaved {
 		ig.dbg("%s: starting node %s in callee saved regs", ig.fn.Name, nd.val)
-		start = savedStart
+		start = ig.ra.savedStart
 	}
 
 	// find the lowest numbered colour that doesn't interfere

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/rj45/llbrew/arch"
 	"github.com/rj45/llbrew/compile"
 )
 
@@ -26,6 +27,9 @@ func main() {
 	var trace = flag.Bool("trace", false, "Run the program in the emulator with tracing turned on")
 
 	flag.Parse()
+
+	arch.SetArch("rj32")
+
 	c := compile.Compiler{}
 
 	c.OptSize = 1

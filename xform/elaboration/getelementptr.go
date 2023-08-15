@@ -27,13 +27,13 @@ func getElementPtr(it ir.Iter) {
 		panic("bad assumption, expecting element to be int const")
 	}
 
-	pointedto := base.Type.Pointer().Element
+	pointedto := base.Type.(*typ.Pointer).Element
 
 	offset := pointedto.SizeOf()*index +
-		pointedto.Struct().OffsetOf(element)
+		pointedto.(*typ.Struct).OffsetOf(element)
 
-	elemtyp := pointedto.Struct().Elements[element]
-	elemtypptr := typ.PointerType(elemtyp, 0)
+	elemtyp := pointedto.(*typ.Struct).Elements[element]
+	elemtypptr := instr.Func().Types().PointerType(elemtyp, 0)
 
 	if offset == 0 {
 		instr.Def(0).ReplaceUsesWith(base)

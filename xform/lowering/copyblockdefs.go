@@ -47,7 +47,7 @@ func copyBlockDefs(it ir.Iter) {
 		return
 	}
 
-	instr := it.Insert(op.Copy, 0)
+	instr := it.Insert(op.Copy, nil)
 
 	for d := 0; d < blk.NumDefs(); d++ {
 		def := blk.Def(d)

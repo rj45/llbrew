@@ -67,7 +67,7 @@ func (in *Instr) update(op Op, typ typ.Type, args []interface{}) {
 		// 		in.updateDef(i, v.Type())
 		// 	}
 		// } else
-		if typ != 0 {
+		if typ != nil {
 			in.updateDef(0, typ)
 		}
 	}

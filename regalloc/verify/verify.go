@@ -10,9 +10,6 @@ import (
 	"github.com/rj45/llbrew/ir/reg"
 )
 
-var regList []reg.Reg
-var regIndex map[reg.Reg]uint8
-
 var ErrNoRegAssigned = errors.New("no register assigned to a variable")
 var ErrWrongValueInReg = errors.New("attempt to read wrong value from register")
 var ErrMissingCopy = errors.New("missing copy of block parameter")
@@ -35,16 +32,17 @@ var ErrIllegalAssignment = errors.New("illegal register assignment in two operan
 func Verify(fn *ir.Func) []error {
 	var errs []error
 
-	if regList == nil {
-		regList = append(regList, reg.None)
-		regList = append(regList, reg.ArgRegs...)
-		regList = append(regList, reg.TempRegs...)
-		regList = append(regList, reg.SavedRegs...)
+	var regList []reg.Reg
+	var regIndex map[reg.Reg]uint8
 
-		regIndex = make(map[reg.Reg]uint8, len(regList))
-		for idx, reg := range regList {
-			regIndex[reg] = uint8(idx)
-		}
+	regList = append(regList, reg.None)
+	regList = append(regList, reg.ArgRegs...)
+	regList = append(regList, reg.TempRegs...)
+	regList = append(regList, reg.SavedRegs...)
+
+	regIndex = make(map[reg.Reg]uint8, len(regList))
+	for idx, reg := range regList {
+		regIndex[reg] = uint8(idx)
 	}
 
 	if fn.NumBlocks() < 1 {

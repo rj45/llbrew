@@ -36,24 +36,26 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 		}
 
 		opertyp := operand.Type()
-		ntyp := translateType(opertyp)
+
 		switch opertyp.TypeKind() {
 		case llvm.IntegerTypeKind:
+			ntyp := trans.translateType(opertyp)
 			ninstr.InsertArg(-1, trans.fn.ValueFor(ntyp, operand.SExtValue()))
 		case llvm.FunctionTypeKind:
 			panic(operand.Name())
 		case llvm.PointerTypeKind:
-			if ntyp.Pointer().Element.Kind() == typ.FunctionKind {
+			ntyp := trans.translateType(opertyp)
+			if ntyp.(*typ.Pointer).Element.Kind() == typ.FunctionKind {
 				otherfn := trans.pkg.Func(operand.Name())
-				ninstr.InsertArg(0, trans.fn.ValueFor(ntyp.Pointer().Element, otherfn))
+				ninstr.InsertArg(0, trans.fn.ValueFor(ntyp.(*typ.Pointer).Element, otherfn))
 			} else if !operand.IsAGlobalVariable().IsNil() {
 				globalName := operand.Name()
 				glob := trans.pkg.Global(globalName)
 				glob.Referenced = true
-				val := trans.fn.ValueFor(translateType(operand.Type()), glob)
+				val := trans.fn.ValueFor(trans.translateType(operand.Type()), glob)
 				ninstr.InsertArg(-1, val)
 			} else if operand.Opcode() == llvm.GetElementPtr {
-				gep := ninstr.Func().NewInstr(op.GetElementPtr, translateType(operand.Type()))
+				gep := ninstr.Func().NewInstr(op.GetElementPtr, trans.translateType(operand.Type()))
 				ninstr.Block().InsertInstr(ninstr.Index(), gep)
 				trans.translateOperands(operand, gep)
 				ninstr.InsertArg(-1, gep.Def(0))
@@ -73,6 +75,7 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 			fmt.Println(" encountered")
 
 		default:
+			ntyp := trans.translateType(opertyp)
 			log.Panicf("todo: other operand types: %s", ntyp.String())
 		}
 

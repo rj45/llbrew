@@ -29,7 +29,7 @@ func alloca(it ir.Iter) {
 
 	t := val.Type
 	if t.Kind() == typ.PointerKind {
-		t = t.Pointer().Element
+		t = t.(*typ.Pointer).Element
 	}
 
 	size := t.SizeOf()

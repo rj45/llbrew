@@ -17,7 +17,7 @@ func (trans *translator) translateBlocks(fn llvm.Value) {
 			first = false
 			idx := 0
 			for param := fn.FirstParam(); !param.IsNil(); param = llvm.NextParam(param) {
-				pval := trans.fn.NewValue(translateType(param.Type()))
+				pval := trans.fn.NewValue(trans.translateType(param.Type()))
 				nblk.AddDef(pval)
 				trans.valuemap[param] = pval
 
@@ -95,7 +95,7 @@ func (trans *translator) translateBlockArgs(blk llvm.BasicBlock) {
 				t := val.Type()
 				switch t.TypeKind() {
 				case llvm.IntegerTypeKind:
-					arg = nblk.Func().ValueFor(translateType(t), val.SExtValue())
+					arg = nblk.Func().ValueFor(trans.translateType(t), val.SExtValue())
 				default:
 					instr.Dump()
 					panic(" unimpl constant kind")

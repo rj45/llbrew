@@ -12,6 +12,9 @@ import (
 type RegAlloc struct {
 	fn *ir.Func
 
+	regList    []reg.Reg
+	savedStart uint16
+
 	info []blockInfo
 
 	iGraph iGraph
@@ -104,18 +107,15 @@ func (ra *RegAlloc) Allocate() error {
 	return nil
 }
 
-var regList []reg.Reg
-var savedStart uint16
-
 const dontColour = 0xffff
 
 // preColour finds all the values with already assigned registers and sets their colour to them
 func (ra *RegAlloc) preColour() {
-	if regList == nil {
-		regList = append(regList, reg.ArgRegs...)
-		regList = append(regList, reg.TempRegs...)
-		savedStart = uint16(len(regList) + 1)
-		regList = append(regList, reg.SavedRegs...)
+	if ra.regList == nil {
+		ra.regList = append(ra.regList, reg.ArgRegs...)
+		ra.regList = append(ra.regList, reg.TempRegs...)
+		ra.savedStart = uint16(len(ra.regList) + 1)
+		ra.regList = append(ra.regList, reg.SavedRegs...)
 	}
 
 	for id := range ra.iGraph.nodes {
@@ -128,7 +128,7 @@ func (ra *RegAlloc) preColour() {
 
 		if val.InReg() && val.Reg() != reg.None {
 			found := false
-			for i, reg := range regList {
+			for i, reg := range ra.regList {
 				if val.Reg() == reg {
 					node.colour = uint16(i + 1)
 					found = true
@@ -163,20 +163,20 @@ func (ra *RegAlloc) assignRegisters() error {
 		// colour zero is "noColour", so subtract one
 		regIndex := int(node.colour - 1)
 
-		if regIndex >= len(regList) {
+		if regIndex >= len(ra.regList) {
 			return ErrTooManyRequiredRegisters
 		}
 
-		if val.InReg() && val.Reg() != reg.None && val.Reg() != regList[regIndex] {
-			log.Panicf("setting pre-set %s id %d reg %s to %s", ra.fn.Name, val.ID, val, regList[regIndex])
+		if val.InReg() && val.Reg() != reg.None && val.Reg() != ra.regList[regIndex] {
+			log.Panicf("setting pre-set %s id %d reg %s to %s", ra.fn.Name, val.ID, val, ra.regList[regIndex])
 		}
 
-		val.SetReg(regList[regIndex])
+		val.SetReg(ra.regList[regIndex])
 
 		for _, id := range node.merged {
 			val := id.ValueIn(ra.fn)
 			if val.NeedsReg() {
-				val.SetReg(regList[regIndex])
+				val.SetReg(ra.regList[regIndex])
 			}
 		}
 	}

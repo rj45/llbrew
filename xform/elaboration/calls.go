@@ -4,6 +4,7 @@ import (
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
 	"github.com/rj45/llbrew/ir/reg"
+	"github.com/rj45/llbrew/ir/typ"
 	"github.com/rj45/llbrew/xform"
 )
 
@@ -14,7 +15,7 @@ var _ = xform.Register(calls,
 
 func calls(it ir.Iter) {
 	instr := it.Instr()
-	fnType := instr.Arg(0).Type.Function()
+	fnType := instr.Arg(0).Type.(*typ.Function)
 
 	if instr.NumArgs() > 1 && instr.Arg(1).Def() != nil && instr.Arg(1).Def().Instr().Op == op.Copy {
 		return
@@ -35,7 +36,7 @@ func calls(it ir.Iter) {
 			args[i-1] = instr.Arg(i)
 		}
 
-		paramCopy := it.Insert(op.Copy, 0, args...)
+		paramCopy := it.Insert(op.Copy, nil, args...)
 		for i := 0; i < paramCopy.NumArgs(); i++ {
 			paramCopy.AddDef(paramCopy.Func().NewValue(params[i]))
 			if i < len(reg.ArgRegs) {
@@ -56,7 +57,7 @@ func calls(it ir.Iter) {
 		}
 
 		it.Next()
-		resCopy := it.Insert(op.Copy, 0, args...)
+		resCopy := it.Insert(op.Copy, nil, args...)
 		for i := 0; i < resCopy.NumArgs(); i++ {
 			resCopy.AddDef(resCopy.Func().NewValue(results[i]))
 			if i < len(reg.ArgRegs) {

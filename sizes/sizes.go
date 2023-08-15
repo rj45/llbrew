@@ -29,6 +29,10 @@ func WordSize() int {
 	return int(basicSizes[types.Uintptr])
 }
 
+func PointerSize() int {
+	return WordSize() // todo: not always true
+}
+
 func MinAddressableBits() int {
 	return minAddressableBits
 }
