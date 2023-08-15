@@ -51,16 +51,12 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 				glob := trans.pkg.Global(globalName)
 				glob.Referenced = true
 				val := trans.fn.ValueFor(translateType(operand.Type()), glob)
-				argidx := -1
-				if ninstr.Op == op.Store {
-					argidx = 0
-				}
-				ninstr.InsertArg(argidx, val)
+				ninstr.InsertArg(-1, val)
 			} else if operand.Opcode() == llvm.GetElementPtr {
 				gep := ninstr.Func().NewInstr(op.GetElementPtr, translateType(operand.Type()))
 				ninstr.Block().InsertInstr(ninstr.Index(), gep)
 				trans.translateOperands(operand, gep)
-				ninstr.InsertArg(0, gep.Def(0))
+				ninstr.InsertArg(-1, gep.Def(0))
 			} else {
 				fmt.Println(operand.Opcode())
 				fmt.Println(operand.Opcode())
@@ -85,21 +81,10 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 }
 
 func (trans *translator) fixupInstruction(instr *ir.Instr) {
+	// stores are backwards from what we expect, so swap the args
 	if instr.Op == op.Store {
-		swap := false
-		// operands can be backwards sometimes
-		if instr.Arg(1).Type.Kind() == typ.PointerKind {
-			def := instr.Arg(1).Def().Instr()
-			if def != nil && def.Op == op.Alloca {
-				swap = true
-			}
-		}
-		// todo: add other situations
-
-		if swap {
-			arg := instr.Arg(0)
-			instr.RemoveArg(arg)
-			instr.InsertArg(-1, arg)
-		}
+		arg := instr.Arg(0)
+		instr.RemoveArg(arg)
+		instr.InsertArg(-1, arg)
 	}
 }

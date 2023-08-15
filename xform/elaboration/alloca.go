@@ -1,9 +1,12 @@
 package elaboration
 
 import (
+	"fmt"
+
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
 	"github.com/rj45/llbrew/ir/reg"
+	"github.com/rj45/llbrew/ir/typ"
 	"github.com/rj45/llbrew/xform"
 )
 
@@ -25,21 +28,42 @@ func alloca(it ir.Iter) {
 	if !ok {
 		panic("expecting first arg of alloca to be an int const")
 	}
-	size := val.Type.SizeOf()
+
+	t := val.Type
+	if t.Kind() == typ.PointerKind {
+		t = t.Pointer().Element
+	}
+
+	size := t.SizeOf()
+
+	if num == 0 {
+		num++
+	}
+
+	fmt.Println("Type", t.String(), "arg0 type", instr.Arg(0).Type, "num", num, "size", size, "ttl", num*size)
 
 	addr := instr.Func().AllocSpillStorage(num * size)
 
 	val.SetSpillAddress(addr)
 
-	uses := make([]*ir.Instr, val.NumUses())
+	uses := make([]*ir.User, val.NumUses())
 	for u := 0; u < val.NumUses(); u++ {
-		uses[u] = val.Use(u).Instr()
+		uses[u] = val.Use(u)
 	}
-	for _, uinstr := range uses {
-		ublk := uinstr.Block()
-		add := uinstr.Func().NewInstr(op.Add, val.Type, reg.SP, val)
-		ublk.InsertInstr(uinstr.Index(), add)
-		uinstr.ReplaceArg(uinstr.ArgIndex(val), add.Def(0))
+	for _, use := range uses {
+		if use.IsInstr() {
+			uinstr := use.Instr()
+			ublk := uinstr.Block()
+			if ublk == nil {
+				// todo: investigate why this happens, it shouldn't
+				continue
+			}
+			add := uinstr.Func().NewInstr(op.Add, val.Type, reg.SP, val)
+			ublk.InsertInstr(uinstr.Index(), add)
+			uinstr.ReplaceArg(uinstr.ArgIndex(val), add.Def(0))
+		} else {
+			panic("other use")
+		}
 	}
 	it.RemoveInstr(instr)
 	it.Changed()

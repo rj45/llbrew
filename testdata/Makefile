@@ -1,4 +1,4 @@
-TESTS = 000_simple.ll 001_add.ll 002_fib.ll 003_global.ll 004_ptrtovar.ll 005_struct.ll
+TESTS = 000_simple.ll 001_add.ll 002_fib.ll 003_global.ll 004_ptrtovar.ll 005_struct.ll 006_structptr.ll
 
 all: $(TESTS)
 

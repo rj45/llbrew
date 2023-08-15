@@ -86,7 +86,8 @@ func logue(it ir.Iter) {
 		for a := 0; a < instr.NumArgs(); a++ {
 			arg := instr.Arg(a)
 			if arg.InSpillArea() {
-				arg.ReplaceUsesWith(fn.ValueFor(typ.IntegerWordType(), arg.SpillAddress()+spillOffset))
+				actualAddress := arg.SpillAddress() + spillOffset
+				arg.ReplaceUsesWith(fn.ValueFor(typ.IntegerWordType(), actualAddress))
 			}
 		}
 
