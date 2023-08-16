@@ -1,7 +1,9 @@
 package translate
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/typ"
@@ -39,10 +41,17 @@ func (trans *translator) initProgram() {
 	trans.types = trans.prog.Types()
 }
 
+func fixupGlobalName(name string) string {
+	name = strings.TrimPrefix(name, ".")
+	name = strings.Replace(name, ".", "_", -1)
+	return name
+}
+
 func (trans *translator) translateGlobals() {
 	for glob := trans.mod.FirstGlobal(); !glob.IsNil(); glob = llvm.NextGlobal(glob) {
 		t := trans.translateType(glob.Type())
-		nglob := trans.pkg.NewGlobal(glob.Name(), t.(*typ.Pointer).Element)
+		name := fixupGlobalName(glob.Name())
+		nglob := trans.pkg.NewGlobal(name, t.(*typ.Pointer).Element)
 		if glob.OperandsCount() > 0 {
 			value := glob.Operand(0)
 			switch nglob.Type.Kind() {
@@ -54,6 +63,21 @@ func (trans *translator) translateGlobals() {
 				} else {
 					value.Dump()
 					panic(" -- some other struct constant")
+				}
+			case typ.ArrayKind:
+				if !value.IsAConstantAggregateZero().IsNil() {
+					nglob.Value = ir.ConstFor(nglob.Type.ZeroValue())
+				} else if value.IsConstantString() {
+					nglob.Value = ir.ConstFor(value.ConstGetAsString())
+				} else {
+					fmt.Println("operands", value.OperandsCount())
+					fmt.Println("name", value.Name())
+					fmt.Println("opcode", value.Opcode())
+					fmt.Println("metadata", value.HasMetadata())
+					fmt.Println("string", value.ConstGetAsString())
+
+					value.Dump()
+					panic(" --- something else!")
 				}
 			default:
 				log.Panicf("unknown kind %d", value.Type().TypeKind())

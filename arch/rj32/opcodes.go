@@ -46,6 +46,7 @@ const (
 	// Psuedoinstructions
 	Not
 	Neg
+	Sxt
 	Swap
 	IfGt
 	IfLe
@@ -131,6 +132,7 @@ var opDefs = [...]flags{
 	IfUge:  compare | sink,
 	Not:    clobbers,
 	Neg:    clobbers,
+	Sxt:    clobbers,
 	IfGt:   compare | sink,
 	IfLe:   compare | sink,
 	IfUgt:  compare | sink,

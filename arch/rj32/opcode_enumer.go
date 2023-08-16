@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const _OpcodeName = "nopretserrorhaltrcsrwcsrmoveloadcjumpimmcallimm2loadstoreloadbstorebaddsubaddcsubcxorandorshlshrasrif_eqif_neif_ltif_geif_ultif_ugenotnegswapif_gtif_leif_ugtif_ulereturnnum_ops"
+const _OpcodeName = "nopretserrorhaltrcsrwcsrmoveloadcjumpimmcallimm2loadstoreloadbstorebaddsubaddcsubcxorandorshlshrasrif_eqif_neif_ltif_geif_ultif_ugenotnegsxtswapif_gtif_leif_ugtif_ulereturnnum_ops"
 
-var _OpcodeIndex = [...]uint8{0, 3, 7, 12, 16, 20, 24, 28, 33, 37, 40, 44, 48, 52, 57, 62, 68, 71, 74, 78, 82, 85, 88, 90, 93, 96, 99, 104, 109, 114, 119, 125, 131, 134, 137, 141, 146, 151, 157, 163, 169, 176}
+var _OpcodeIndex = [...]uint8{0, 3, 7, 12, 16, 20, 24, 28, 33, 37, 40, 44, 48, 52, 57, 62, 68, 71, 74, 78, 82, 85, 88, 90, 93, 96, 99, 104, 109, 114, 119, 125, 131, 134, 137, 140, 144, 149, 154, 160, 166, 172, 179}
 
-const _OpcodeLowerName = "nopretserrorhaltrcsrwcsrmoveloadcjumpimmcallimm2loadstoreloadbstorebaddsubaddcsubcxorandorshlshrasrif_eqif_neif_ltif_geif_ultif_ugenotnegswapif_gtif_leif_ugtif_ulereturnnum_ops"
+const _OpcodeLowerName = "nopretserrorhaltrcsrwcsrmoveloadcjumpimmcallimm2loadstoreloadbstorebaddsubaddcsubcxorandorshlshrasrif_eqif_neif_ltif_geif_ultif_ugenotnegsxtswapif_gtif_leif_ugtif_ulereturnnum_ops"
 
 func (i Opcode) String() string {
 	if i < 0 || i >= Opcode(len(_OpcodeIndex)-1) {
@@ -58,16 +58,17 @@ func _OpcodeNoOp() {
 	_ = x[IfUge-(31)]
 	_ = x[Not-(32)]
 	_ = x[Neg-(33)]
-	_ = x[Swap-(34)]
-	_ = x[IfGt-(35)]
-	_ = x[IfLe-(36)]
-	_ = x[IfUgt-(37)]
-	_ = x[IfUle-(38)]
-	_ = x[Return-(39)]
-	_ = x[NumOps-(40)]
+	_ = x[Sxt-(34)]
+	_ = x[Swap-(35)]
+	_ = x[IfGt-(36)]
+	_ = x[IfLe-(37)]
+	_ = x[IfUgt-(38)]
+	_ = x[IfUle-(39)]
+	_ = x[Return-(40)]
+	_ = x[NumOps-(41)]
 }
 
-var _OpcodeValues = []Opcode{Nop, Rets, Error, Halt, Rcsr, Wcsr, Move, Loadc, Jump, Imm, Call, Imm2, Load, Store, Loadb, Storeb, Add, Sub, Addc, Subc, Xor, And, Or, Shl, Shr, Asr, IfEq, IfNe, IfLt, IfGe, IfUlt, IfUge, Not, Neg, Swap, IfGt, IfLe, IfUgt, IfUle, Return, NumOps}
+var _OpcodeValues = []Opcode{Nop, Rets, Error, Halt, Rcsr, Wcsr, Move, Loadc, Jump, Imm, Call, Imm2, Load, Store, Loadb, Storeb, Add, Sub, Addc, Subc, Xor, And, Or, Shl, Shr, Asr, IfEq, IfNe, IfLt, IfGe, IfUlt, IfUge, Not, Neg, Sxt, Swap, IfGt, IfLe, IfUgt, IfUle, Return, NumOps}
 
 var _OpcodeNameToValueMap = map[string]Opcode{
 	_OpcodeName[0:3]:          Nop,
@@ -138,20 +139,22 @@ var _OpcodeNameToValueMap = map[string]Opcode{
 	_OpcodeLowerName[131:134]: Not,
 	_OpcodeName[134:137]:      Neg,
 	_OpcodeLowerName[134:137]: Neg,
-	_OpcodeName[137:141]:      Swap,
-	_OpcodeLowerName[137:141]: Swap,
-	_OpcodeName[141:146]:      IfGt,
-	_OpcodeLowerName[141:146]: IfGt,
-	_OpcodeName[146:151]:      IfLe,
-	_OpcodeLowerName[146:151]: IfLe,
-	_OpcodeName[151:157]:      IfUgt,
-	_OpcodeLowerName[151:157]: IfUgt,
-	_OpcodeName[157:163]:      IfUle,
-	_OpcodeLowerName[157:163]: IfUle,
-	_OpcodeName[163:169]:      Return,
-	_OpcodeLowerName[163:169]: Return,
-	_OpcodeName[169:176]:      NumOps,
-	_OpcodeLowerName[169:176]: NumOps,
+	_OpcodeName[137:140]:      Sxt,
+	_OpcodeLowerName[137:140]: Sxt,
+	_OpcodeName[140:144]:      Swap,
+	_OpcodeLowerName[140:144]: Swap,
+	_OpcodeName[144:149]:      IfGt,
+	_OpcodeLowerName[144:149]: IfGt,
+	_OpcodeName[149:154]:      IfLe,
+	_OpcodeLowerName[149:154]: IfLe,
+	_OpcodeName[154:160]:      IfUgt,
+	_OpcodeLowerName[154:160]: IfUgt,
+	_OpcodeName[160:166]:      IfUle,
+	_OpcodeLowerName[160:166]: IfUle,
+	_OpcodeName[166:172]:      Return,
+	_OpcodeLowerName[166:172]: Return,
+	_OpcodeName[172:179]:      NumOps,
+	_OpcodeLowerName[172:179]: NumOps,
 }
 
 var _OpcodeNames = []string{
@@ -189,13 +192,14 @@ var _OpcodeNames = []string{
 	_OpcodeName[125:131],
 	_OpcodeName[131:134],
 	_OpcodeName[134:137],
-	_OpcodeName[137:141],
-	_OpcodeName[141:146],
-	_OpcodeName[146:151],
-	_OpcodeName[151:157],
-	_OpcodeName[157:163],
-	_OpcodeName[163:169],
-	_OpcodeName[169:176],
+	_OpcodeName[137:140],
+	_OpcodeName[140:144],
+	_OpcodeName[144:149],
+	_OpcodeName[149:154],
+	_OpcodeName[154:160],
+	_OpcodeName[160:166],
+	_OpcodeName[166:172],
+	_OpcodeName[172:179],
 }
 
 // OpcodeString retrieves an enum value from the enum constants string name.

@@ -159,7 +159,7 @@ func splitCriticalEdge(source, dest llvm.BasicBlock) {
 	builder.SetInsertPointAtEnd(newBlock)
 	builder.CreateBr(dest)
 	for i := 0; i < lastInstr.OperandsCount(); i++ {
-		if lastInstr.Operand(i).Name() == dest.AsValue().Name() {
+		if lastInstr.Operand(i).AsBasicBlock() == dest {
 			lastInstr.SetOperand(i, newBlock.AsValue())
 		}
 	}
@@ -180,7 +180,7 @@ func splitCriticalEdge(source, dest llvm.BasicBlock) {
 			incVal[i] = phi.IncomingValue(i)
 			incBB[i] = phi.IncomingBlock(i)
 
-			if phi.IncomingBlock(i).AsValue().Name() == source.AsValue().Name() {
+			if phi.IncomingBlock(i) == source {
 				incBB[i] = newBlock
 			}
 		}

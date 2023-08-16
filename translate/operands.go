@@ -49,7 +49,7 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 				otherfn := trans.pkg.Func(operand.Name())
 				ninstr.InsertArg(0, trans.fn.ValueFor(ntyp.(*typ.Pointer).Element, otherfn))
 			} else if !operand.IsAGlobalVariable().IsNil() {
-				globalName := operand.Name()
+				globalName := fixupGlobalName(operand.Name())
 				glob := trans.pkg.Global(globalName)
 				glob.Referenced = true
 				val := trans.fn.ValueFor(trans.translateType(operand.Type()), glob)

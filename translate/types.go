@@ -46,6 +46,8 @@ func (trans *translator) translatePartialType(t llvm.Type, incomplete map[llvm.T
 		return trans.types.PointerType(trans.translatePartialType(t.ElementType(), incomplete), t.PointerAddressSpace())
 	case llvm.VoidTypeKind:
 		return trans.types.VoidType()
+	case llvm.ArrayTypeKind:
+		return trans.types.ArrayType(trans.translatePartialType(t.ElementType(), incomplete), t.ArrayLength())
 	case llvm.LabelTypeKind:
 		panic("should not be")
 	default:

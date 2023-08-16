@@ -77,11 +77,8 @@ func translate(it ir.Iter) {
 	case op.Call:
 		instr.Op = Call
 		it.Changed()
-	// case op.Panic:
-	// 	instr.Op = Error
-	// 	it.Changed()
-	// case op.InlineAsm:
-	// 	// handled elsewhere
+	case op.SExt:
+		instr.Op = Sxt
 	default:
 		// if _, ok := instr.Op.(op.Op); ok {
 		// 	log.Panicf("Unknown instruction: %s", instr.LongString())

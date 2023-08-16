@@ -12,6 +12,7 @@ type Types struct {
 	functions []*Function
 	pointers  []*Pointer
 	structs   []*Struct
+	arrays    []*Array
 }
 
 func (ctx *Types) IntegerType(bits int) Type {
@@ -111,6 +112,16 @@ func (ctx *Types) CompleteStructType(t Type, elems []Type) {
 	}
 
 	st.Elements = slices.Clone(elems)
+}
+
+func (ctx *Types) ArrayType(elem Type, count int) Type {
+	for _, value := range ctx.arrays {
+		if value.Element == elem && value.Count == count {
+			return value
+		}
+	}
+	ctx.arrays = append(ctx.arrays, &Array{elem, count, ctx})
+	return ctx.arrays[len(ctx.arrays)-1]
 }
 
 func (ctx *Types) StringType() Type {

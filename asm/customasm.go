@@ -38,11 +38,11 @@ func (CustomASM) String(val string) string {
 	bytesize := sizes.MinAddressableBits()
 	switch bytesize {
 	case 8:
-		return fmt.Sprintf("#d8 %q", val)
+		return fmt.Sprintf("#d %q", val)
 	case 16:
-		return fmt.Sprintf("#d16 utf16le(%q)", val)
+		return fmt.Sprintf("#d utf16le(%q)", val)
 	case 32:
-		return fmt.Sprintf("#d32 utf32le(%q)", val)
+		return fmt.Sprintf("#d utf32le(%q)", val)
 	}
 	panic("unsupported byte size")
 }
