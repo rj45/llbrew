@@ -10,10 +10,10 @@ import (
 func Run(binfile string, trace bool) error {
 	args := slices.Clone(emuArgs)
 
+	args = append(args, binfile)
 	if trace {
 		args = append(args, "-trace")
 	}
-	args = append(args, binfile)
 
 	runcmd := exec.Command(emuCmd, args...)
 	runcmd.Stderr = os.Stderr

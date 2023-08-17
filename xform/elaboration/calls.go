@@ -17,7 +17,36 @@ func calls(it ir.Iter) {
 	instr := it.Instr()
 	fnType := instr.Arg(0).Type.(*typ.Function)
 
-	if instr.NumArgs() > 1 && instr.Arg(1).Def() != nil && instr.Arg(1).Def().Instr().Op == op.Copy {
+	allSet := true
+	for a := 0; a < instr.NumArgs(); a++ {
+		if instr.Arg(a).Def() == nil || instr.Arg(a).Def().Instr().Op != op.Copy {
+			allSet = false
+			break
+		}
+		if a < len(reg.ArgRegs) && instr.Arg(a).Reg() != reg.ArgRegs[a] {
+			allSet = false
+			break
+		} else if a >= len(reg.ArgRegs) && instr.Arg(a).ArgSlot() != a-len(reg.ArgRegs) {
+			allSet = false
+			break
+		}
+	}
+
+	for d := 0; d < instr.NumDefs(); d++ {
+		if instr.Def(d).NumUses() != 1 || instr.Def(d).Use(0).Instr().Op != op.Copy {
+			allSet = false
+			break
+		}
+		if d < len(reg.ArgRegs) && instr.Def(d).Reg() != reg.ArgRegs[d] {
+			allSet = false
+			break
+		} else if d >= len(reg.ArgRegs) && instr.Def(d).ArgSlot() != d-len(reg.ArgRegs) {
+			allSet = false
+			break
+		}
+	}
+
+	if allSet {
 		return
 	}
 
@@ -58,6 +87,7 @@ func calls(it ir.Iter) {
 
 		it.Next()
 		resCopy := it.Insert(op.Copy, nil, args...)
+		it.Prev()
 		for i := 0; i < resCopy.NumArgs(); i++ {
 			resCopy.AddDef(resCopy.Func().NewValue(results[i]))
 			if i < len(reg.ArgRegs) {
