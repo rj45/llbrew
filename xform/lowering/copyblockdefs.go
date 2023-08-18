@@ -3,6 +3,7 @@ package lowering
 import (
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
+	"github.com/rj45/llbrew/ir/reg"
 	"github.com/rj45/llbrew/xform"
 )
 
@@ -28,8 +29,13 @@ func copyBlockDefs(it ir.Iter) {
 		return
 	}
 
+	numDefs := blk.NumDefs()
+	if blk.Func().Block(0) == blk && blk.NumDefs() > len(reg.ArgRegs) {
+		numDefs = len(reg.ArgRegs)
+	}
+
 	allCopied := true
-	for d := 0; d < blk.NumDefs(); d++ {
+	for d := 0; d < numDefs; d++ {
 		def := blk.Def(d)
 
 		// check if the sole use of the def is not a copy in this block
@@ -49,7 +55,7 @@ func copyBlockDefs(it ir.Iter) {
 
 	instr := it.Insert(op.Copy, nil)
 
-	for d := 0; d < blk.NumDefs(); d++ {
+	for d := 0; d < numDefs; d++ {
 		def := blk.Def(d)
 
 		ndef := blk.Func().NewValue(def.Type)

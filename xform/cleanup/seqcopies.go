@@ -2,6 +2,7 @@ package cleanup
 
 import (
 	"log"
+	"slices"
 
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
@@ -38,17 +39,51 @@ func sequentializeCopies(it ir.Iter) {
 	srcs := make(map[reg.Reg]*ir.Value)
 	dests := make(map[reg.Reg]*ir.Value)
 
-	// fmt.Println("seq:", instr.Func().Name, instr.LongString())
-
 	var copied [][2]*ir.Value
 
 	emit := func(def, arg *ir.Value) {
+		if def == nil {
+			panic("nil dest")
+		}
+		if arg == nil {
+			panic("nil src")
+		}
+
 		cp := it.Insert(op.Copy, def.Type, arg)
 		cpdef := cp.Def(0)
 		cpdef.SetReg(def.Reg())
 		def.ReplaceUsesWith(cpdef)
 		copied = append(copied, [2]*ir.Value{def, arg})
 		it.Changed()
+	}
+
+	findFreeReg := func() reg.Reg {
+		fn := instr.Func()
+		unused := slices.Clone(reg.SavedRegs)
+		hasCall := false
+		for it := fn.InstrIter(); it.HasNext(); it.Next() {
+			instr := it.Instr()
+			for a := 0; a < instr.NumArgs(); a++ {
+				arg := instr.Arg(a)
+				if arg.InReg() {
+					slices.DeleteFunc(unused, func(e reg.Reg) bool {
+						return e == arg.Reg()
+					})
+				}
+			}
+			if instr.IsCall() {
+				hasCall = true
+			}
+		}
+		if len(unused) < 1 {
+			if hasCall {
+				// RA should be saved to the stack and available for use
+				return reg.RA
+			}
+
+			panic("todo: no temp register available")
+		}
+		return unused[0]
 	}
 
 	for i := 0; i < instr.NumDefs(); i++ {
@@ -129,11 +164,23 @@ func sequentializeCopies(it ir.Iter) {
 			break
 		}
 
+		if len(todo) == 2 {
+			// can be emitted with a swap
+			break
+		}
+
 		b := todo[len(todo)-1]
 		todo = todo[:len(todo)-1]
 
 		if b != loc[pred[b]] {
 			// need test program to verify this
+			free := findFreeReg()
+			freedef := instr.Func().ValueFor(dests[b].Type, free)
+			loc[b] = free
+			srcs[b] = freedef
+			emit(freedef, srcs[b])
+			ready = append(ready, b)
+
 			panic("todo: temp needed, or figure out swap chain")
 		}
 	}

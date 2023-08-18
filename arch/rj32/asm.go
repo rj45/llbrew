@@ -15,6 +15,9 @@ func (cpuArch) Asm(op ir.Op, defs, args []string, emit func(string)) {
 	case Store, Storeb:
 		emit(fmt.Sprintf("%s [%s, %s], %s", op, args[0], args[1], args[2]))
 		return
+	case Swap:
+		emit(fmt.Sprintf("%s %s, %s", op, args[0], args[1]))
+		return
 	case Return:
 		emit("return")
 		return

@@ -23,6 +23,8 @@ func (trans *translator) translateBlocks(fn llvm.Value) {
 
 				if idx < len(reg.ArgRegs) {
 					pval.SetReg(reg.ArgRegs[idx])
+				} else {
+					pval.SetParamSlot(idx - len(reg.ArgRegs))
 				}
 				idx++
 			}

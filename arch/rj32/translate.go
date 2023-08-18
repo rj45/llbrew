@@ -107,5 +107,12 @@ func translateLoadStore(it ir.Iter) {
 func translateCopies(it ir.Iter) {
 	instr := it.Instr()
 
-	it.Update(Move, instr.Def(0).Type, instr.Args())
+	if instr.NumArgs() == 1 {
+		it.Update(Move, instr.Def(0).Type, instr.Args())
+	} else if instr.NumArgs() == 2 {
+		instr.Op = Swap
+		it.Changed()
+	} else {
+		panic("parallel copy left!")
+	}
 }

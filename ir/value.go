@@ -105,7 +105,7 @@ func (val *Value) IsDefinedByOp(op Op) bool {
 // NeedsReg indicates if this Value should be allocated
 // a register
 func (val *Value) NeedsReg() bool {
-	return !val.IsConst() && !val.IsBlock() && !val.InSpillArea()
+	return !val.IsConst() && !val.IsBlock() && !val.InSpillArea() && !val.InParamSlot() && !val.InArgSlot()
 }
 
 // stg is the storage for a value

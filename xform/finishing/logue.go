@@ -19,10 +19,10 @@ SP points at next empty place on the stack
 Here is what the call frames look like:
 
 low mem addresses
++------------------------+   > beginnings of next frame
+|                        |  | <-- SP
 +------------------------+  |
-|                        |   > beginnings of next frame
-+------------------------+  |
-| potential stack arg 3  | /  <-- SP
+| potential stack arg 3  | /
 +------------------------+ \
 | potential stack arg 4  |  |
 +------------------------+  |
@@ -34,9 +34,9 @@ low mem addresses
 +------------------------+  |
 | saved reg 2            |  |
 +------------------------+  |
-| saved ra (if needed)   | /
+| saved ra (if needed)   | / <-- caller SP
 +------------------------+ \
-| callee stack arg 3     |  | <-- caller SP
+| callee stack arg 3     |  |
 +------------------------+  |
 | callee stack arg 4     |  |
 +------------------------+  |
@@ -72,7 +72,24 @@ func logue(it ir.Iter) {
 	types := fn.Types()
 
 	spillAreaSize := fn.SpillAreaSize()
-	spillOffset := 0 // todo: will be > 0 when param area is allocated
+
+	numParamSlots := max(len(fn.Sig.Params)-len(reg.ArgRegs), 0)
+	paramSlots := make([]int, numParamSlots)
+	paramOffset := 0
+	for i := 0; i < numParamSlots; i++ {
+		t := fn.Sig.Params[len(reg.ArgRegs)+i]
+		paramOffset += t.SizeOf()
+		paramSlots[i] = paramOffset
+	}
+
+	// TODO: count arg slots and replace
+	argSize := fn.NumArgSlots() * sizes.WordSize()
+
+	if argSize > 0 {
+		argSize++
+	}
+
+	spillOffset := argSize // todo: will be > 0 when arg area is allocated
 
 	saveRegMap := map[reg.Reg]struct{}{}
 	for sit := fn.InstrIter(); sit.HasNext(); sit.Next() {
@@ -87,7 +104,10 @@ func logue(it ir.Iter) {
 			arg := instr.Arg(a)
 			if arg.InSpillArea() {
 				actualAddress := arg.SpillAddress() + spillOffset
-				arg.ReplaceUsesWith(fn.ValueFor(types.IntegerWordType(), actualAddress))
+				arg.SetConst(ir.ConstFor(actualAddress))
+			} else if arg.InArgSlot() {
+				actualAddress := (arg.ArgSlot() + 1) * sizes.WordSize()
+				arg.SetConst(ir.ConstFor(actualAddress))
 			}
 		}
 
@@ -109,12 +129,7 @@ func logue(it ir.Iter) {
 		}
 	}
 
-	frameSize := spillAreaSize + (len(saveRegMap) * sizes.WordSize())
-
-	if frameSize == 0 {
-		// nothing to do
-		return
-	}
+	frameSize := spillAreaSize + argSize + (len(saveRegMap) * sizes.WordSize())
 
 	offset := 0
 	for sit := fn.InstrIter(); sit.HasNext(); sit.Next() {
@@ -123,54 +138,57 @@ func logue(it ir.Iter) {
 		if instr.Op == op.Alloca {
 			size, _ := ir.IntValue(instr.Arg(0).Const())
 
-			for u := 0; u < instr.Def(0).NumUses(); u++ {
-				// todo: replace alloca instructions with values stored in stack slots,
-				// then ensure load/stores have SP relative addressing to the stack slot,
-				// then here, just replace values with constant offsets
-			}
-
 			offset += size * sizes.WordSize()
+		}
+
+		for a := 0; a < instr.NumArgs(); a++ {
+			arg := instr.Arg(a)
+			if arg.InParamSlot() {
+				arg.SetConst(ir.ConstFor(paramSlots[arg.ParamSlot()] + frameSize))
+			}
 		}
 	}
 
-	// todo: account for SpillSlots when spilling is implemented
-	// todo: account for called function ArgSlots
-
 	// the add is put first because some arches only allow positive load/store offsets
 	size := sizes.WordSize()
-	spval := it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, -frameSize).Def(0)
-	spval.SetReg(reg.SP)
+	var spval *ir.Value
+	if frameSize > 0 {
+		spval = it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, -frameSize).Def(0)
+		spval.SetReg(reg.SP)
+	}
 
-	offset = spillAreaSize
+	offset = spillAreaSize + argSize
 	for _, sreg := range reg.SavedRegs {
 		if _, found := saveRegMap[sreg]; found {
-			it.Insert(op.Store, types.IntegerWordType(), spval, offset, sreg)
+			it.Insert(op.Store, types.IntegerWordType(), reg.SP, offset, sreg)
 			offset += size
 		}
 	}
 	if _, found := saveRegMap[reg.RA]; found {
-		it.Insert(op.Store, types.PointerType(types.VoidType(), 0), spval, offset, reg.RA)
+		it.Insert(op.Store, types.PointerType(types.VoidType(), 0), reg.SP, offset, reg.RA)
 		offset += size
 	}
 
 	for ; it.HasNext(); it.Next() {
 		instr := it.Instr()
 		if instr.Op.IsReturn() {
-			offset := spillAreaSize
+			offset := spillAreaSize + argSize
 			for _, sreg := range reg.SavedRegs {
 				if _, found := saveRegMap[sreg]; found {
-					load := it.Insert(op.Load, types.IntegerWordType(), spval, offset)
+					load := it.Insert(op.Load, types.IntegerWordType(), reg.SP, offset)
 					load.Def(0).SetReg(sreg)
 					offset += size
 				}
 			}
 			if _, found := saveRegMap[reg.RA]; found {
-				load := it.Insert(op.Load, types.PointerType(types.VoidType(), 0), spval, offset)
+				load := it.Insert(op.Load, types.PointerType(types.VoidType(), 0), reg.SP, offset)
 				load.Def(0).SetReg(reg.RA)
 				offset += size
 			}
-			spval2 := it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, frameSize).Def(0)
-			spval2.SetReg(reg.SP)
+			if frameSize > 0 {
+				spval2 := it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, frameSize).Def(0)
+				spval2.SetReg(reg.SP)
+			}
 		}
 	}
 }

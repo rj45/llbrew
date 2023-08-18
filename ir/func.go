@@ -144,6 +144,10 @@ func (fn *Func) SpillAreaSize() int {
 	return fn.stackSpillSize
 }
 
+func (fn *Func) NumArgSlots() int {
+	return fn.numArgSlots
+}
+
 // Placeholders
 
 // PlaceholderFor creates a special placeholder value that can be later
