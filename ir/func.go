@@ -19,6 +19,8 @@ type Func struct {
 	Referenced bool
 	NumCalls   int
 
+	Frame StackFrame
+
 	numArgSlots    int
 	numParamSlots  int
 	stackSpillSize int

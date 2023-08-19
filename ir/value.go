@@ -41,6 +41,9 @@ const (
 
 	// Spill slots are an area of the stack reserved for register spills.
 	InSpillArea
+
+	// Value is stored on the stack
+	OnStack
 )
 
 // init initializes the Value.
@@ -105,7 +108,7 @@ func (val *Value) IsDefinedByOp(op Op) bool {
 // NeedsReg indicates if this Value should be allocated
 // a register
 func (val *Value) NeedsReg() bool {
-	return !val.IsConst() && !val.IsBlock() && !val.InSpillArea() && !val.InParamSlot() && !val.InArgSlot()
+	return !val.IsConst() && !val.IsBlock() && !val.InSpillArea() && !val.InParamSlot() && !val.InArgSlot() && !val.OnStack()
 }
 
 // stg is the storage for a value
@@ -243,6 +246,30 @@ func (val *Value) SpillAddress() int {
 // SetSpillAddress puts the Value at the specified spill address on the stack.
 func (val *Value) SetSpillAddress(address int) {
 	val.stg = spillStg(address)
+}
+
+// stack slots
+
+type stackStg SlotID
+
+func (stackStg) Location() Location { return InSpillArea }
+
+// OnStack returns whether the value is stored on the stack.
+func (val *Value) OnStack() bool {
+	return val.Location() == InSpillArea
+}
+
+// StackSlotID returns which spill slot the Value is in, or -1 if not in a spill slot.
+func (val *Value) StackSlotID() SlotID {
+	if val.Location() == InSpillArea {
+		return SlotID(val.stg.(stackStg))
+	}
+	return 0
+}
+
+// SetStackSlot puts the Value on the stack at the specified slot.
+func (val *Value) SetStackSlot(slot SlotID) {
+	val.stg = stackStg(slot)
 }
 
 // const
