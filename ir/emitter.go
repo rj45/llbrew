@@ -304,14 +304,8 @@ func (val *Value) String() string {
 	if val.InReg() {
 		return fmt.Sprintf("%s_%s", val.IDString(), val.Reg())
 	}
-	if val.InArgSlot() {
-		return fmt.Sprintf("%s_sa%d", val.IDString(), val.ArgSlot())
-	}
-	if val.InParamSlot() {
-		return fmt.Sprintf("%s_sp%d", val.IDString(), val.ParamSlot())
-	}
-	if val.InSpillArea() {
-		return fmt.Sprintf("%s_ss%d", val.IDString(), val.SpillAddress())
+	if val.OnStack() {
+		return fmt.Sprintf("%s_%s", val.IDString(), val.StackSlotID())
 	}
 	return val.IDString()
 }

@@ -26,7 +26,7 @@ func calls(it ir.Iter) {
 		if a < len(reg.ArgRegs) && instr.Arg(a).Reg() != reg.ArgRegs[a] {
 			allSet = false
 			break
-		} else if a >= len(reg.ArgRegs) && instr.Arg(a).ArgSlot() != a-len(reg.ArgRegs) {
+		} else if a >= len(reg.ArgRegs) && !instr.Arg(a).OnStack() {
 			allSet = false
 			break
 		}
@@ -40,7 +40,7 @@ func calls(it ir.Iter) {
 		if d < len(reg.ArgRegs) && instr.Def(d).Reg() != reg.ArgRegs[d] {
 			allSet = false
 			break
-		} else if d >= len(reg.ArgRegs) && instr.Def(d).ArgSlot() != d-len(reg.ArgRegs) {
+		} else if d >= len(reg.ArgRegs) && !instr.Def(d).OnStack() {
 			allSet = false
 			break
 		}
@@ -71,7 +71,7 @@ func calls(it ir.Iter) {
 			if i < len(reg.ArgRegs) {
 				paramCopy.Def(i).SetReg(reg.ArgRegs[i])
 			} else {
-				paramCopy.Def(i).SetArgSlot(i - len(reg.ArgRegs))
+				paramCopy.Def(i).SetSlotIndex(ir.ArgSlot, i-len(reg.ArgRegs))
 			}
 			instr.ReplaceArg(i+1, paramCopy.Def(i))
 		}
@@ -90,11 +90,6 @@ func calls(it ir.Iter) {
 		it.Prev()
 		for i := 0; i < resCopy.NumArgs(); i++ {
 			resCopy.AddDef(resCopy.Func().NewValue(results[i]))
-			if i < len(reg.ArgRegs) {
-				resCopy.Arg(i).SetReg(reg.ArgRegs[i])
-			} else {
-				resCopy.Arg(i).SetArgSlot(i - len(reg.ArgRegs))
-			}
 
 			// todo: could use a version of this that doesn't
 			// clobber the current instruction or something
@@ -103,5 +98,6 @@ func calls(it ir.Iter) {
 			// switch this back to what it was
 			resCopy.ReplaceArg(i, instr.Def(i))
 		}
+		resCopy.SetCallRegisters(true, ir.ArgSlot)
 	}
 }

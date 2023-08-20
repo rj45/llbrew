@@ -3,7 +3,6 @@ package elaboration
 import (
 	"github.com/rj45/llbrew/ir"
 	"github.com/rj45/llbrew/ir/op"
-	"github.com/rj45/llbrew/ir/reg"
 	"github.com/rj45/llbrew/xform"
 )
 
@@ -23,11 +22,7 @@ func returnCopy(it ir.Iter) {
 
 	for i := 0; i < ret.NumArgs(); i++ {
 		cp.AddDef(cp.Func().NewValue(ret.Arg(i).Type))
-		if i < len(reg.ArgRegs) {
-			cp.Def(i).SetReg(reg.ArgRegs[i])
-		} else {
-			cp.Def(i).SetArgSlot(i - len(reg.ArgRegs))
-		}
 		ret.ReplaceArg(i, cp.Def(i))
 	}
+	cp.SetCallRegisters(false, ir.ArgSlot)
 }

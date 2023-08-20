@@ -20,7 +20,7 @@ func callArgStores(it ir.Iter) {
 		arg := instr.Arg(a)
 		def := instr.Def(a)
 
-		if def.InArgSlot() {
+		if def.OnStack() {
 			// remove arg & def from the copy
 			instr.RemoveArg(arg)
 			instr.RemoveDef(def)

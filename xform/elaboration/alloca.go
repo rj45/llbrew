@@ -18,7 +18,7 @@ func alloca(it ir.Iter) {
 
 	val := instr.Def(0)
 
-	if val.InSpillArea() {
+	if val.OnStack() {
 		return
 	}
 
@@ -27,20 +27,16 @@ func alloca(it ir.Iter) {
 		panic("expecting first arg of alloca to be an int const")
 	}
 
-	t := val.Type
-	if t.Kind() == typ.PointerKind {
-		t = t.(*typ.Pointer).Element
+	ptr := val.Type
+	t := val.Type.(*typ.Pointer).Element
+
+	if num > 1 {
+		t = instr.Func().Types().ArrayType(t, num)
 	}
 
-	size := t.SizeOf()
+	val.Type = t
 
-	if num == 0 {
-		num++
-	}
-
-	addr := instr.Func().AllocSpillStorage(num * size)
-
-	val.SetSpillAddress(addr)
+	val.MoveToStack(ir.AllocaSlot)
 
 	uses := make([]*ir.User, val.NumUses())
 	for u := 0; u < val.NumUses(); u++ {
@@ -54,7 +50,7 @@ func alloca(it ir.Iter) {
 				// todo: investigate why this happens, it shouldn't
 				continue
 			}
-			add := uinstr.Func().NewInstr(op.Add, val.Type, reg.SP, val)
+			add := uinstr.Func().NewInstr(op.Add, ptr, reg.SP, val)
 			ublk.InsertInstr(uinstr.Index(), add)
 			uinstr.ReplaceArg(uinstr.ArgIndex(val), add.Def(0))
 		} else {

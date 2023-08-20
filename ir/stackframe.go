@@ -1,59 +1,77 @@
 package ir
 
-import "slices"
+import (
+	"slices"
 
-/*
-A stack frame looks like this:
+	"github.com/rj45/llbrew/sizes"
+)
 
-low mem addresses
-+------------------------+
-|                        |  |
-+------------------------+  |
-| callee stack arg 3     |  |
-+------------------------+  |
-| callee stack arg 4     |  |
-+------------------------+   > callee frame
-| callee SP              |  |
-+------------------------+  |
-| callee RA              | /  <-- SP
-+------------------------+ \
-| alloca 0               |  |
-+------------------------+  |
-| alloca 1               |  |
-+------------------------+  |
-| spill 0                |  |
-+------------------------+   > stack frame
-| spill 1                |  |
-+------------------------+  |
-| saved reg 0            |  |
-+------------------------+  |
-| saved reg 1            |  |
-+------------------------+  |
-| stack param 3          |  |
-+------------------------+  |
-| stack param 4          |  |
-+------------------------+  |
-| saved SP               |  |
-+------------------------+  |
-| saved RA               |  | <-- previous SP
-+------------------------+ /
-high mem addresses
-
-*/
+var stackLayout = [...]SlotKind{
+	ArgSlot,
+	SpillSlot,
+	AllocaSlot,
+	SavedSlot,
+	ParamSlot, // in caller's frame
+}
 
 // StackFrame represents the stack frame layout of the current function.
-// "Slot" IDs are handed out to values which are stored on the stack,
-// and space is allocated according to the largest value that will
+// "Slot" IDs are handed out for offsets to values which are stored on the
+// stack, and space is allocated according to the largest value that will
 // be assigned to that stack slot.
+//
+// A stack frame looks like this:
+//
+//	low mem addresses
+//	+------------------------+
+//	|                        |   <-- SP
+//	+------------------------+ \
+//	| callee stack arg 0     |  |
+//	+------------------------+  |
+//	| callee stack arg 1     |  |
+//	+------------------------+  |
+//	| spill 0                |  |
+//	+------------------------+  |
+//	| spill 1                |  |
+//	+------------------------+  |
+//	| alloca 0               |  |
+//	+------------------------+   > stack frame
+//	| alloca 1               |  |
+//	+------------------------+  |
+//	| saved reg 0            |  |
+//	+------------------------+  |
+//	| saved reg 1            |  |
+//	+------------------------+  |
+//	| saved RA               |  |
+//	+------------------------+  |
+//	| saved SP               |  | <-- previous SP
+//	+------------------------+ /
+//	| stack param 0          | \
+//	+------------------------+  |
+//	| stack param 1          |   > caller's stack frame
+//	+------------------------+  |
+//	high mem addresses
+//
+// The SP is saved instead of a frame pointer to save a register. A frame
+// pointer may be required to support dynamic stack allocations, but other
+// than that, it is not needed. SP is saved to aide in unwinding the
+// stack for debugging purposes.
+//
+// The stack parameters of a called function reside in the caller's stack
+// frame.
+//
+// The order of items on the stack frame is an attempt to limit the size of
+// offsets on load/store instructions that may appear frequently, such as
+// variables spilled to the stack during register allocation.
 type StackFrame struct {
 	fn *Func
 
 	nextIDs [NumStackAreas]SlotID
 
-	slots   [NumStackAreas][]slotValue
-	sizes   [NumStackAreas][]int
-	offsets [NumStackAreas][]int
-	totals  [NumStackAreas]int
+	slots     [NumStackAreas][]slotValue
+	sizes     [NumStackAreas][]int
+	offsets   [NumStackAreas][]int
+	totals    [NumStackAreas]int
+	frameSize int
 }
 
 func (frame *StackFrame) Func() *Func {
@@ -77,10 +95,28 @@ func (frame *StackFrame) SlotID(kind SlotKind, index int) SlotID {
 	return SlotID(uint32(kind)<<24 | uint32(index))
 }
 
-func (frame *StackFrame) OffsetOf(slot SlotID) int {
+func (frame *StackFrame) offsetOf(slot SlotID) int {
 	return frame.offsets[slot.Kind()][slot.Index()]
 }
 
+// FrameSize is the total stack frame size minus
+func (frame *StackFrame) FrameSize() int {
+	return frame.frameSize
+}
+
+// ReplaceOffsets replaces all the stack offset variables with the
+// actual calculated stack offsets. `Scan` must be called first.
+func (frame *StackFrame) ReplaceOffsets() {
+	fn := frame.fn
+	for kind := range frame.slots {
+		for _, sv := range frame.slots[kind] {
+			val := sv.value.ValueIn(fn)
+			val.SetConst(ConstFor(frame.offsetOf(sv.slot)))
+		}
+	}
+}
+
+// Scan the function for stack variables and calculate the SP offset for them.
 func (frame *StackFrame) Scan() {
 	for i := 0; i < int(NumStackAreas); i++ {
 		frame.slots[i] = nil
@@ -142,12 +178,27 @@ func (frame *StackFrame) countValue(v *Value) {
 
 func (frame *StackFrame) recalcOffsets() {
 	clear(frame.totals[:])
-	for kind := 0; kind < int(NumStackAreas); kind++ {
-		offset := 0
+	offset := sizes.WordSize() // reserve space for saving SP
+	frame.frameSize = offset
+	for _, kind := range stackLayout {
+		if kind == ParamSlot && frame.frameSize > sizes.WordSize() {
+			// skip over SP on the stack
+			offset += sizes.WordSize()
+		}
 		for i, size := range frame.sizes[kind] {
 			frame.offsets[kind][i] = offset
 			offset += size
 			frame.totals[kind] += size
+
+			// param slots are stored on caller's frame
+			if kind != ParamSlot {
+				frame.frameSize += size
+			}
 		}
+	}
+	if frame.frameSize <= sizes.WordSize() {
+		// if we would only store SP on the frame
+		// then don't bother making a frame
+		frame.frameSize = 0
 	}
 }

@@ -38,6 +38,7 @@ func (pkg *Package) NewFunc(name string, sig *typ.Function) *Func {
 		FullName: pkg.genUniqueName(name),
 		Sig:      sig,
 	}
+	fn.Frame.fn = fn
 	fn.pkg = pkg
 	pkg.funcs = append(pkg.funcs, fn)
 	return fn

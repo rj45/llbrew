@@ -32,16 +32,6 @@ const (
 	InConst
 	InReg
 
-	// Param slots are an area of the stack for func parameters.
-	// Specifically, they are in the caller's arg slot area.
-	InParamSlot
-
-	// Arg slots are an area of the stack reserved for call arguments.
-	InArgSlot
-
-	// Spill slots are an area of the stack reserved for register spills.
-	InSpillArea
-
 	// Value is stored on the stack
 	OnStack
 )
@@ -108,7 +98,7 @@ func (val *Value) IsDefinedByOp(op Op) bool {
 // NeedsReg indicates if this Value should be allocated
 // a register
 func (val *Value) NeedsReg() bool {
-	return !val.IsConst() && !val.IsBlock() && !val.InSpillArea() && !val.InParamSlot() && !val.InArgSlot() && !val.OnStack()
+	return !val.IsConst() && !val.IsBlock() && !val.OnStack()
 }
 
 // stg is the storage for a value
@@ -168,100 +158,20 @@ func (val *Value) SetReg(reg reg.Reg) {
 	val.stg = regStg{reg}
 }
 
-// param slots
-
-type paramStg uint8
-
-func (paramStg) Location() Location { return InParamSlot }
-
-// InParamSlot returns whether the value in one of the param slots on the stack.
-func (val *Value) InParamSlot() bool {
-	return val.Location() == InParamSlot
-}
-
-// ParamSlot returns which param slot the Value is in, or -1 if not in a param slot.
-func (val *Value) ParamSlot() int {
-	if val.Location() == InParamSlot {
-		return int(val.stg.(paramStg))
-	}
-	return -1
-}
-
-// SetParamSlot puts the Value in the specified param slot on the stack.
-func (val *Value) SetParamSlot(slot int) {
-	val.stg = paramStg(slot)
-
-	if val.Func().numParamSlots < slot+1 {
-		val.Func().numParamSlots = slot + 1
-	}
-}
-
-// arg slots
-
-type argStg uint8
-
-func (argStg) Location() Location { return InArgSlot }
-
-// InArgSlot returns whether the value in one of the arg slots on the stack.
-func (val *Value) InArgSlot() bool {
-	return val.Location() == InArgSlot
-}
-
-// ArgSlot returns which arg slot the Value is in, or -1 if not in a arg slot.
-func (val *Value) ArgSlot() int {
-	if val.Location() == InArgSlot {
-		return int(val.stg.(argStg))
-	}
-	return -1
-}
-
-// SetArgSlot puts the Value in the specified arg slot on the stack.
-func (val *Value) SetArgSlot(slot int) {
-	val.stg = argStg(slot)
-
-	if val.Func().numArgSlots < slot+1 {
-		val.Func().numArgSlots = slot + 1
-	}
-}
-
-// spill slots
-
-type spillStg uint8
-
-func (spillStg) Location() Location { return InSpillArea }
-
-// InSpillArea returns whether the value is stored in the spill area of the stack.
-func (val *Value) InSpillArea() bool {
-	return val.Location() == InSpillArea
-}
-
-// SpillAddress returns which spill slot the Value is in, or -1 if not in a spill slot.
-func (val *Value) SpillAddress() int {
-	if val.Location() == InSpillArea {
-		return int(val.stg.(spillStg))
-	}
-	return -1
-}
-
-// SetSpillAddress puts the Value at the specified spill address on the stack.
-func (val *Value) SetSpillAddress(address int) {
-	val.stg = spillStg(address)
-}
-
 // stack slots
 
 type stackStg SlotID
 
-func (stackStg) Location() Location { return InSpillArea }
+func (stackStg) Location() Location { return OnStack }
 
 // OnStack returns whether the value is stored on the stack.
 func (val *Value) OnStack() bool {
-	return val.Location() == InSpillArea
+	return val.Location() == OnStack
 }
 
 // StackSlotID returns which spill slot the Value is in, or -1 if not in a spill slot.
 func (val *Value) StackSlotID() SlotID {
-	if val.Location() == InSpillArea {
+	if val.Location() == OnStack {
 		return SlotID(val.stg.(stackStg))
 	}
 	return 0
@@ -270,6 +180,16 @@ func (val *Value) StackSlotID() SlotID {
 // SetStackSlot puts the Value on the stack at the specified slot.
 func (val *Value) SetStackSlot(slot SlotID) {
 	val.stg = stackStg(slot)
+}
+
+// SetSlotIndex sets the stack slot to a specific index
+func (val *Value) SetSlotIndex(kind SlotKind, index int) {
+	val.SetStackSlot(val.def.fn.Frame.SlotID(kind, index))
+}
+
+// MoveToStack moves the value onto the stack in the next slot available
+func (val *Value) MoveToStack(kind SlotKind) {
+	val.SetStackSlot(val.def.fn.Frame.NewSlotID(kind))
 }
 
 // const

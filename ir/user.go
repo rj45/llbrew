@@ -3,6 +3,7 @@ package ir
 import (
 	"log"
 
+	"github.com/rj45/llbrew/ir/reg"
 	"github.com/rj45/llbrew/ir/typ"
 )
 
@@ -193,4 +194,22 @@ func (use *User) ReplaceArg(i int, arg *Value) {
 	}
 	use.args[i] = arg
 	use.args[i].addUse(use)
+}
+
+func (use *User) SetCallRegisters(args bool, kind SlotKind) {
+	// set the ABI registers / stack slots for either defs or args
+	// replace a few places that this is calculated with this function
+	vals := use.defs
+	if args {
+		vals = use.args
+	}
+
+	for i, val := range vals {
+		// todo: handle values larger than a word
+		if i < len(reg.ArgRegs) {
+			val.SetReg(reg.ArgRegs[i])
+		} else {
+			val.SetSlotIndex(kind, i-len(reg.ArgRegs))
+		}
+	}
 }

@@ -98,6 +98,10 @@ func (fn *Func) ValueFor(t typ.Type, v interface{}) *Value {
 		if v != nil && len(v.defs) == 1 {
 			return v.defs[0]
 		}
+	case SlotID:
+		val := fn.NewValue(t)
+		val.SetStackSlot(v)
+		return val
 	case reg.Reg:
 		if val, ok := fn.regs[v]; ok {
 			return val
