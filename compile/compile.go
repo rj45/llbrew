@@ -179,7 +179,7 @@ func (c *Compiler) transformProgram() error {
 			// if *debug {
 			// 	regalloc.WriteGraphvizCFG(ra)
 			// 	regalloc.DumpLivenessChart(ra)
-			// 	regalloc.WriteGraphvizInterferenceGraph(ra)
+			//  regalloc.WriteGraphvizInterferenceGraph(ra)
 			// 	regalloc.WriteGraphvizLivenessGraph(ra)
 			// }
 			if err != nil {
@@ -191,8 +191,7 @@ func (c *Compiler) transformProgram() error {
 				log.Printf("verification error: %s\n", err)
 			}
 			if len(errs) > 0 {
-				w.Close()
-				log.Fatal("verification failed")
+				return fmt.Errorf("verification failed")
 			}
 
 			xform.Transform(xform.CleanUp, fn)

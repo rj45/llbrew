@@ -52,9 +52,16 @@ func WriteGraphvizInterferenceGraph(ra *RegAlloc) {
 	fmt.Fprintln(dot, "graph G {")
 
 	edges := map[string]bool{}
+	moves := map[string]bool{}
 
 	for _, nodeA := range ra.iGraph.nodes {
-		label := fmt.Sprintf("%s\n%d:%d", nodeA.val.IDString(), nodeA.order, nodeA.colour)
+		idstr := nodeA.val.IDString()
+		for _, mrged := range nodeA.merged {
+			idstr += ","
+			idstr += mrged.IDString()
+		}
+
+		label := fmt.Sprintf("%s\n%d:%d", idstr, nodeA.order, nodeA.colour)
 		fmt.Fprintf(dot, "%s [label=%q];\n", nodeA.val.IDString(), label)
 
 		for nodeBid := range nodeA.interferes {
@@ -66,6 +73,14 @@ func WriteGraphvizInterferenceGraph(ra *RegAlloc) {
 			}
 		}
 
+		for _, nodeBid := range nodeA.moves {
+			nodeB := ra.iGraph.nodes[nodeBid]
+			edge := nodeA.val.IDString() + "--" + nodeB.val.IDString()
+			if !moves[edge] && !moves[nodeB.val.IDString()+"--"+nodeA.val.IDString()] {
+				fmt.Fprintf(dot, "%s [style=\"dashed\"];\n", edge)
+				moves[edge] = true
+			}
+		}
 	}
 
 	fmt.Fprintln(dot, "}")
