@@ -1,6 +1,7 @@
 package typ
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/rj45/llbrew/sizes"
@@ -25,6 +26,10 @@ func (ptr *Pointer) SizeOf() int {
 
 func (ptr *Pointer) String() string {
 	return ptr.string(make(map[Type]string))
+}
+
+func (ptr *Pointer) GoString() string {
+	return fmt.Sprintf("types.PointerType(%s, %d)", ptr.Element.GoString(), ptr.AddrSpace)
 }
 
 func (ptr *Pointer) ZeroValue() interface{} {

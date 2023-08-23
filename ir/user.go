@@ -98,6 +98,16 @@ func (use *User) RemoveDef(def *Value) {
 		panic("attempt to remove non-existant def")
 	}
 
+	use.RemoveDefAt(index)
+}
+
+// RemoveDefAt removes the value from the defs list at the index
+func (use *User) RemoveDefAt(index int) {
+	if index < 0 || index >= len(use.defs) {
+		panic("attempt to remove non-existant def")
+	}
+	def := use.defs[index]
+
 	def.def = nil
 
 	use.defs = append(use.defs[:index], use.defs[index+1:]...)

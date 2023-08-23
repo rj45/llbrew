@@ -25,6 +25,13 @@ func (i Integer) String() string {
 	return "i" + strconv.Itoa(int(i))
 }
 
+func (i Integer) GoString() string {
+	if int(i) == 0 {
+		return "types.IntegerWordType()"
+	}
+	return "types.IntegerType(" + strconv.Itoa(int(i)) + ")"
+}
+
 func (i Integer) ZeroValue() interface{} {
 	return 0
 }

@@ -1,6 +1,7 @@
 package typ
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -14,37 +15,45 @@ type Struct struct {
 
 var _ Type = &Struct{}
 
-func (ptr *Struct) Kind() Kind {
+func (st *Struct) Kind() Kind {
 	return StructKind
 }
 
-func (ptr *Struct) SizeOf() int {
+func (st *Struct) SizeOf() int {
 	ttl := 0
-	for _, e := range ptr.Elements {
+	for _, e := range st.Elements {
 		ttl += e.SizeOf()
 	}
 	return ttl
 }
 
-func (ptr *Struct) String() string {
-	return ptr.string(make(map[Type]string))
+func (st *Struct) String() string {
+	return st.string(make(map[Type]string))
 }
 
-func (ptr *Struct) ZeroValue() interface{} {
-	v := make([]interface{}, len(ptr.Elements))
-	for i, e := range ptr.Elements {
+func (st *Struct) GoString() string {
+	elems := make([]string, len(st.Elements))
+	for i, elem := range st.Elements {
+		elems[i] = elem.GoString()
+	}
+	return fmt.Sprintf("types.StructType(%q, []Type{%s}, %v)", st.Name, strings.Join(elems, ", "), st.Packed)
+}
+
+func (st *Struct) ZeroValue() interface{} {
+	v := make([]interface{}, len(st.Elements))
+	for i, e := range st.Elements {
 		v[i] = e.ZeroValue()
 	}
 	return v
 }
 
-func (s Struct) Reference() string {
-	return "struct " + s.Name
+func (st *Struct) Reference() string {
+	return "struct " + st.Name
 }
 
-func (s Struct) OffsetOf(element int) int {
+func (st *Struct) OffsetOf(element int) int {
 	total := 0
-	for i, t := range s.Elements {
+	for i, t := range st.Elements {
 		if element == i {
 			return total
 		}
@@ -53,16 +62,16 @@ func (s Struct) OffsetOf(element int) int {
 	panic("invalid element index")
 }
 
-func (ptr *Struct) private() {}
+func (st *Struct) private() {}
 
-func (s Struct) string(refs map[Type]string) string {
-	strs := make([]string, len(s.Elements))
-	for i, elem := range s.Elements {
-		strs[i] = s.types.string(elem, refs)
+func (st *Struct) string(refs map[Type]string) string {
+	strs := make([]string, len(st.Elements))
+	for i, elem := range st.Elements {
+		strs[i] = st.types.string(elem, refs)
 	}
 	packed := ""
-	if s.Packed {
+	if st.Packed {
 		packed = "packed "
 	}
-	return "struct " + packed + s.Name + " {" + strings.Join(strs, ",") + "}"
+	return "struct " + packed + st.Name + " {" + strings.Join(strs, ",") + "}"
 }

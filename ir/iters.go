@@ -52,6 +52,11 @@ type Iter interface {
 	// Update updates the instruction at the cursor position
 	Update(op Op, typ typ.Type, args ...interface{}) *Instr
 
+	// Replace the uses of the instruction at the cursor postion
+	// with the specified value, making sure to instead insert a
+	// copy if necessary
+	ReplaceWith(v *Value) *Value
+
 	// HasChanged returns true if `Changed()` was called, or one of the mutation methods
 	HasChanged() bool
 
@@ -216,6 +221,30 @@ func (it *BlockIter) Update(op Op, typ typ.Type, args ...interface{}) *Instr {
 	it.changed = true
 
 	return instr
+}
+
+func (it *BlockIter) ReplaceWith(v *Value) *Value {
+	instr := it.blk.instrs[it.insIdx]
+
+	// TODO: not sure if a copy is required or not
+	// delete this commented code if it's not required
+	// blkInBlk := v.def.IsBlock() && v.def.BlockIn(instr.blk.fn) != instr.blk
+	// instrInBlk := v.def.IsInstr() && v.def.InstrIn(instr.blk.fn).blk != instr.blk
+	// if blkInBlk || instrInBlk {
+	// 	instr.defs[0].ReplaceUsesWith(v)
+	// 	it.blk.RemoveInstr(instr)
+	//	it.Prev()
+	// } else {
+	// 	instr.Update(op.Copy, v.Type, v)
+	// }
+
+	instr.defs[0].ReplaceUsesWith(v)
+	it.blk.RemoveInstr(instr)
+	it.Prev()
+
+	it.changed = true
+
+	return v
 }
 
 // inter-block iterator (ie, whole function)

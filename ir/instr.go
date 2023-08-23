@@ -72,6 +72,12 @@ func (in *Instr) update(op Op, typ typ.Type, args []interface{}) {
 		}
 	}
 
+	if op.IsSink() {
+		for i := len(in.defs) - 1; i >= 0; i-- {
+			in.RemoveDefAt(i)
+		}
+	}
+
 	offset := 0
 	for i, a := range args {
 		if list, ok := a.([]*Value); ok {

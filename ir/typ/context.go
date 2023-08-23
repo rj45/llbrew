@@ -7,8 +7,6 @@ import (
 )
 
 type Types struct {
-	// todo: add rwlock
-
 	functions []*Function
 	pointers  []*Pointer
 	structs   []*Struct

@@ -16,6 +16,10 @@ func (v Void) String() string {
 	return "void"
 }
 
+func (v Void) GoString() string {
+	return "types.VoidType()"
+}
+
 func (v Void) ZeroValue() interface{} {
 	return 0
 }

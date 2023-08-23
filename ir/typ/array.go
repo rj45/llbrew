@@ -1,6 +1,7 @@
 package typ
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -13,29 +14,33 @@ type Array struct {
 
 var _ Type = &Array{}
 
-func (ptr *Array) Kind() Kind {
+func (arr *Array) Kind() Kind {
 	return ArrayKind
 }
 
-func (ptr *Array) SizeOf() int {
-	return ptr.Element.SizeOf() * ptr.Count
+func (arr *Array) SizeOf() int {
+	return arr.Element.SizeOf() * arr.Count
 }
 
-func (ptr *Array) String() string {
-	return ptr.string(make(map[Type]string))
+func (arr *Array) String() string {
+	return arr.string(make(map[Type]string))
 }
 
-func (ptr *Array) ZeroValue() interface{} {
-	zeros := make([]interface{}, ptr.Count)
-	zero := ptr.Element.ZeroValue()
+func (arr *Array) GoString() string {
+	return fmt.Sprintf("types.ArrayType(%s, %d)", arr.Element.GoString(), arr.Count)
+}
+
+func (arr *Array) ZeroValue() interface{} {
+	zeros := make([]interface{}, arr.Count)
+	zero := arr.Element.ZeroValue()
 	for i := 0; i < len(zeros); i++ {
 		zeros[i] = zero
 	}
 	return zeros
 }
 
-func (ptr *Array) private() {}
+func (arr *Array) private() {}
 
-func (ptr Array) string(refs map[Type]string) string {
-	return "[" + strconv.Itoa(ptr.Count) + "]" + ptr.types.string(ptr.Element, refs)
+func (arr Array) string(refs map[Type]string) string {
+	return "[" + strconv.Itoa(arr.Count) + "]" + arr.types.string(arr.Element, refs)
 }

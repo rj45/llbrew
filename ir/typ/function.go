@@ -1,6 +1,7 @@
 package typ
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/rj45/llbrew/sizes"
@@ -24,6 +25,19 @@ func (fn *Function) SizeOf() int {
 
 func (fn *Function) String() string {
 	return fn.string(make(map[Type]string))
+}
+
+func (fn *Function) GoString() string {
+	params := make([]string, len(fn.Params))
+	for i, elem := range fn.Params {
+		params[i] = elem.GoString()
+	}
+	results := make([]string, len(fn.Results))
+	for i, elem := range fn.Results {
+		results[i] = elem.GoString()
+	}
+	return fmt.Sprintf("types.FunctionType([]typ.Type{%s}, []typ.Type{%s}, %v)",
+		strings.Join(results, ", "), strings.Join(params, ", "), fn.IsVarArg)
 }
 
 func (fn *Function) ZeroValue() interface{} {

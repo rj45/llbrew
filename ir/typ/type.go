@@ -5,6 +5,7 @@ type Type interface {
 	String() string
 	ZeroValue() interface{}
 	SizeOf() int
+	GoString() string
 
 	private()
 }
