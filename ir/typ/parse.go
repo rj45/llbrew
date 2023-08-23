@@ -35,6 +35,10 @@ func (types *Types) Parse(str string) (Type, error) {
 		if str == "word" {
 			return types.IntegerType(0), nil
 		}
+	case 'v':
+		if str == "void" {
+			return types.VoidType(), nil
+		}
 	case '[':
 		panic("todo: parse arrays")
 	}

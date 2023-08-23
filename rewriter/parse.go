@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/rj45/llbrew/arch/rj32"
@@ -173,6 +174,13 @@ func (r *rule) parseValue(str string) value {
 		}
 		r.vars[str] = v
 		return v
+	}
+
+	if str[0] != '(' {
+		_, err := strconv.Atoi(str)
+		if err == nil || strings.HasPrefix(str, "reg.") {
+			return constant(str)
+		}
 	}
 
 	return r.parseInstr(str)

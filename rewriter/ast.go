@@ -57,6 +57,7 @@ type vkind uint8
 const (
 	varKind vkind = iota
 	instrKind
+	constKind
 )
 
 type value interface {
@@ -78,4 +79,14 @@ func (v *variable) kind() vkind {
 
 func (v *variable) String() string {
 	return v.name
+}
+
+type constant string
+
+func (c constant) kind() vkind {
+	return constKind
+}
+
+func (c constant) String() string {
+	return string(c)
 }

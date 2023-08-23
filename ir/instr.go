@@ -50,6 +50,13 @@ func (in *Instr) LineNo() int {
 	return pos.Line
 }
 
+func (in *Instr) Type() typ.Type {
+	if len(in.defs) > 0 {
+		return in.defs[0].Type
+	}
+	return nil
+}
+
 // Update changes the op, type and number of defs and the args
 func (in *Instr) Update(op Op, typ typ.Type, args ...interface{}) {
 	in.update(op, typ, args)

@@ -37,6 +37,7 @@ func Generate(name, rulesfile, outfile, pkg string) {
 	fmt.Fprintf(buf, "import (\n")
 	fmt.Fprintf(buf, "\t%q\n", "github.com/rj45/llbrew/ir")
 	fmt.Fprintf(buf, "\t%q\n", "github.com/rj45/llbrew/ir/op")
+	fmt.Fprintf(buf, "\t%q\n", "github.com/rj45/llbrew/ir/reg")
 	fmt.Fprintf(buf, ")\n\n")
 
 	format.Node(buf, token.NewFileSet(), fn)
@@ -67,6 +68,11 @@ func gen(name string, rules []rule) (*ast.FuncDecl, error) {
 	stmts := []ast.Stmt{}
 
 	stmts = append(stmts, declf("instr", "it.Instr()"))
+	stmts = append(stmts, declf("blk", "instr.Block()"))
+	stmts = append(stmts, declf("fn", "blk.Func()"))
+	stmts = append(stmts, declf("types", "fn.Types()"))
+	stmts = append(stmts, assignf("_", "types"))
+	stmts = append(stmts, assignf("_", "reg.SP"))
 
 	expr := exprf("instr.Op")
 	swtch := &ast.SwitchStmt{Tag: expr, Body: &ast.BlockStmt{}}
@@ -209,6 +215,14 @@ func (r *rule) genMatch(vname string, instr *instruction, stmts []ast.Stmt) []as
 			continue
 		}
 
+		if v, ok := arg.(constant); ok {
+			c := string(v)
+
+			argstmts = append(argstmts, breakf("!%s.Arg(%d).HasConstValue(%s)", vname, i, c))
+
+			continue
+		}
+
 		if v, ok := arg.(*instruction); ok {
 			name := fmt.Sprintf("%s_arg%d", vname, i)
 
@@ -243,7 +257,7 @@ func (r *rule) genRepl(val value, stmts []ast.Stmt) []ast.Stmt {
 		if len(v.args) == 1 && v.args[0] == elipsis {
 			stmts = append(stmts, stmtf("instr.Op = %s", v.opstr))
 			if v.typ != nil {
-				stmts = append(stmts, stmtf("instr.Type = %s", v.typ.GoString()))
+				stmts = append(stmts, stmtf("instr.Def(0).Type = %s", v.typ.GoString()))
 			}
 			stmts = append(stmts, stmtf("it.Changed()"))
 			break
@@ -258,7 +272,7 @@ func (r *rule) genRepl(val value, stmts []ast.Stmt) []ast.Stmt {
 			args += s
 		}
 
-		t := "instr.Type"
+		t := "instr.Type()"
 		if v.typ != nil {
 			t = v.typ.GoString()
 		}
@@ -283,17 +297,29 @@ func (r *rule) genSubRepl(val value, stmts []ast.Stmt, cse map[string]string) ([
 	switch v := val.(type) {
 	case *variable:
 		vname = v.name
+	case constant:
+		vname = string(v)
 	case *instruction:
 		args := ""
 
-		for _, arg := range v.args {
+		firstarg := ""
+
+		for i, arg := range v.args {
 			args += ", "
 			var s string
 			stmts, s = r.genSubRepl(arg, stmts, cse)
 			args += s
+			if i == 0 {
+				firstarg = s
+			}
 		}
 
-		if v.typ == nil {
+		t := ""
+		if v.typ != nil {
+			t = v.typ.GoString()
+		} else if firstarg != "" {
+			t = firstarg + ".Type"
+		} else {
 			log.Fatalf("%s: type required for sub expressions", r.loc)
 		}
 
@@ -303,7 +329,7 @@ func (r *rule) genSubRepl(val value, stmts []ast.Stmt, cse map[string]string) ([
 
 		iname := fmt.Sprintf("i%d", r.instrs)
 		r.instrs++
-		stmts = append(stmts, declf(iname, "it.Insert(%s, %s%s)", v.opstr, v.typ.GoString(), args))
+		stmts = append(stmts, declf(iname, "it.Insert(%s, %s%s)", v.opstr, t, args))
 
 		if len(v.defs) == 0 {
 			vname = "_"

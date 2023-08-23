@@ -65,6 +65,15 @@ func (val *Value) Use(i int) *User {
 	return val.uses[i]
 }
 
+// If def of value is an instr, return it's op
+// else return nil
+func (val *Value) Op() Op {
+	if val.Def().IsInstr() {
+		return val.Def().Instr().Op
+	}
+	return nil
+}
+
 // ReplaceUsesWith will go through each use of
 // val and replace it with other. Does not modify
 // any definitions.
@@ -210,6 +219,32 @@ func (val *Value) Const() Const {
 // SetConst makes the Value the specified constant.
 func (val *Value) SetConst(con Const) {
 	val.stg = con
+}
+
+// HasConstValue returns if the value is constant and
+// equals the provided constant. If provided a register
+// it also checks that the register matches
+func (val *Value) HasConstValue(v interface{}) bool {
+	if reg, ok := v.(reg.Reg); ok {
+		return val.InReg() && val.Reg() == reg
+	}
+	if val.Location() != InConst {
+		return false
+	}
+	c := val.stg.(Const)
+	if c.Kind() == NilConst && v == nil {
+		return true
+	}
+	if c.Kind() == IntConst {
+		ci, _ := Int64Value(c)
+		if i, ok := v.(int); ok {
+			return int(ci) == i
+		}
+		if i, ok := v.(int64); ok {
+			return ci == i
+		}
+	}
+	return false
 }
 
 // util funcs

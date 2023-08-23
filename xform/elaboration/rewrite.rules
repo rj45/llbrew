@@ -1,0 +1,9 @@
+
+
+// insert copies for stores with a constant stored value
+// todo: on some arches zero is okay to be stored directly
+(op.Store a b c) && c.IsConst() => (op.Store a b (op.Copy c))
+(op.Store a c) && c.IsConst() => (op.Store a (op.Copy c))
+
+// fix if instructions without a corresponding compare
+(op.If a) && !a.Op().IsCompare() => (op.If (op.NotEqual a 0))
