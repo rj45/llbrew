@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-const _OpName = "invalidretifjumpswitchindirectBrinvokeunreachablefCmpequalnotEquallesslessEqualgreatergreaterEqualuLessuLessEqualuGreateruGreaterEqualaddfAddsubfSubmulfMuluDivsDivfDivuRemsRemfRemshllShraShrandorxorallocaloadstoregetElementPtrtrunczExtsExtfPToUIfPToSIuIToFPsIToFPfPTruncfPExtptrToIntintToPtrbitCastpHIcallselectcopyvAArgextractElementinsertElementshuffleVectorextractValueinsertValuenumOps"
+const _OpName = "invalidretifjumpswitchindirectBrinvokeunreachablefCmpequalnotEquallesslessEqualgreatergreaterEqualuLessuLessEqualuGreateruGreaterEqualaddfAddsubfSubmulfMuluDivsDivfDivuRemsRemfRemshllShraShrandorxorallocaloadstoregetElementPtrtrunczExtsExtfPToUIfPToSIuIToFPsIToFPfPTruncfPExtptrToIntintToPtrbitCastcallselectcopyvAArgextractElementinsertElementshuffleVectorextractValueinsertValuenumOps"
 
-var _OpIndex = [...]uint16{0, 7, 10, 12, 16, 22, 32, 38, 49, 53, 58, 66, 70, 79, 86, 98, 103, 113, 121, 134, 137, 141, 144, 148, 151, 155, 159, 163, 167, 171, 175, 179, 182, 186, 190, 193, 195, 198, 204, 208, 213, 226, 231, 235, 239, 245, 251, 257, 263, 270, 275, 283, 291, 298, 301, 305, 311, 315, 320, 334, 347, 360, 372, 383, 389}
+var _OpIndex = [...]uint16{0, 7, 10, 12, 16, 22, 32, 38, 49, 53, 58, 66, 70, 79, 86, 98, 103, 113, 121, 134, 137, 141, 144, 148, 151, 155, 159, 163, 167, 171, 175, 179, 182, 186, 190, 193, 195, 198, 204, 208, 213, 226, 231, 235, 239, 245, 251, 257, 263, 270, 275, 283, 291, 298, 302, 308, 312, 317, 331, 344, 357, 369, 380, 386}
 
-const _OpLowerName = "invalidretifjumpswitchindirectbrinvokeunreachablefcmpequalnotequallesslessequalgreatergreaterequalulessulessequalugreaterugreaterequaladdfaddsubfsubmulfmuludivsdivfdivuremsremfremshllshrashrandorxorallocaloadstoregetelementptrtrunczextsextfptouifptosiuitofpsitofpfptruncfpextptrtointinttoptrbitcastphicallselectcopyvaargextractelementinsertelementshufflevectorextractvalueinsertvaluenumops"
+const _OpLowerName = "invalidretifjumpswitchindirectbrinvokeunreachablefcmpequalnotequallesslessequalgreatergreaterequalulessulessequalugreaterugreaterequaladdfaddsubfsubmulfmuludivsdivfdivuremsremfremshllshrashrandorxorallocaloadstoregetelementptrtrunczextsextfptouifptosiuitofpsitofpfptruncfpextptrtointinttoptrbitcastcallselectcopyvaargextractelementinsertelementshufflevectorextractvalueinsertvaluenumops"
 
 func (i Op) String() string {
 	if i >= Op(len(_OpIndex)-1) {
@@ -77,20 +77,19 @@ func _OpNoOp() {
 	_ = x[PtrToInt-(50)]
 	_ = x[IntToPtr-(51)]
 	_ = x[BitCast-(52)]
-	_ = x[PHI-(53)]
-	_ = x[Call-(54)]
-	_ = x[Select-(55)]
-	_ = x[Copy-(56)]
-	_ = x[VAArg-(57)]
-	_ = x[ExtractElement-(58)]
-	_ = x[InsertElement-(59)]
-	_ = x[ShuffleVector-(60)]
-	_ = x[ExtractValue-(61)]
-	_ = x[InsertValue-(62)]
-	_ = x[NumOps-(63)]
+	_ = x[Call-(53)]
+	_ = x[Select-(54)]
+	_ = x[Copy-(55)]
+	_ = x[VAArg-(56)]
+	_ = x[ExtractElement-(57)]
+	_ = x[InsertElement-(58)]
+	_ = x[ShuffleVector-(59)]
+	_ = x[ExtractValue-(60)]
+	_ = x[InsertValue-(61)]
+	_ = x[NumOps-(62)]
 }
 
-var _OpValues = []Op{Invalid, Ret, If, Jump, Switch, IndirectBr, Invoke, Unreachable, FCmp, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, ULess, ULessEqual, UGreater, UGreaterEqual, Add, FAdd, Sub, FSub, Mul, FMul, UDiv, SDiv, FDiv, URem, SRem, FRem, Shl, LShr, AShr, And, Or, Xor, Alloca, Load, Store, GetElementPtr, Trunc, ZExt, SExt, FPToUI, FPToSI, UIToFP, SIToFP, FPTrunc, FPExt, PtrToInt, IntToPtr, BitCast, PHI, Call, Select, Copy, VAArg, ExtractElement, InsertElement, ShuffleVector, ExtractValue, InsertValue, NumOps}
+var _OpValues = []Op{Invalid, Ret, If, Jump, Switch, IndirectBr, Invoke, Unreachable, FCmp, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, ULess, ULessEqual, UGreater, UGreaterEqual, Add, FAdd, Sub, FSub, Mul, FMul, UDiv, SDiv, FDiv, URem, SRem, FRem, Shl, LShr, AShr, And, Or, Xor, Alloca, Load, Store, GetElementPtr, Trunc, ZExt, SExt, FPToUI, FPToSI, UIToFP, SIToFP, FPTrunc, FPExt, PtrToInt, IntToPtr, BitCast, Call, Select, Copy, VAArg, ExtractElement, InsertElement, ShuffleVector, ExtractValue, InsertValue, NumOps}
 
 var _OpNameToValueMap = map[string]Op{
 	_OpName[0:7]:          Invalid,
@@ -199,28 +198,26 @@ var _OpNameToValueMap = map[string]Op{
 	_OpLowerName[283:291]: IntToPtr,
 	_OpName[291:298]:      BitCast,
 	_OpLowerName[291:298]: BitCast,
-	_OpName[298:301]:      PHI,
-	_OpLowerName[298:301]: PHI,
-	_OpName[301:305]:      Call,
-	_OpLowerName[301:305]: Call,
-	_OpName[305:311]:      Select,
-	_OpLowerName[305:311]: Select,
-	_OpName[311:315]:      Copy,
-	_OpLowerName[311:315]: Copy,
-	_OpName[315:320]:      VAArg,
-	_OpLowerName[315:320]: VAArg,
-	_OpName[320:334]:      ExtractElement,
-	_OpLowerName[320:334]: ExtractElement,
-	_OpName[334:347]:      InsertElement,
-	_OpLowerName[334:347]: InsertElement,
-	_OpName[347:360]:      ShuffleVector,
-	_OpLowerName[347:360]: ShuffleVector,
-	_OpName[360:372]:      ExtractValue,
-	_OpLowerName[360:372]: ExtractValue,
-	_OpName[372:383]:      InsertValue,
-	_OpLowerName[372:383]: InsertValue,
-	_OpName[383:389]:      NumOps,
-	_OpLowerName[383:389]: NumOps,
+	_OpName[298:302]:      Call,
+	_OpLowerName[298:302]: Call,
+	_OpName[302:308]:      Select,
+	_OpLowerName[302:308]: Select,
+	_OpName[308:312]:      Copy,
+	_OpLowerName[308:312]: Copy,
+	_OpName[312:317]:      VAArg,
+	_OpLowerName[312:317]: VAArg,
+	_OpName[317:331]:      ExtractElement,
+	_OpLowerName[317:331]: ExtractElement,
+	_OpName[331:344]:      InsertElement,
+	_OpLowerName[331:344]: InsertElement,
+	_OpName[344:357]:      ShuffleVector,
+	_OpLowerName[344:357]: ShuffleVector,
+	_OpName[357:369]:      ExtractValue,
+	_OpLowerName[357:369]: ExtractValue,
+	_OpName[369:380]:      InsertValue,
+	_OpLowerName[369:380]: InsertValue,
+	_OpName[380:386]:      NumOps,
+	_OpLowerName[380:386]: NumOps,
 }
 
 var _OpNames = []string{
@@ -277,17 +274,16 @@ var _OpNames = []string{
 	_OpName[275:283],
 	_OpName[283:291],
 	_OpName[291:298],
-	_OpName[298:301],
-	_OpName[301:305],
-	_OpName[305:311],
-	_OpName[311:315],
-	_OpName[315:320],
-	_OpName[320:334],
-	_OpName[334:347],
-	_OpName[347:360],
-	_OpName[360:372],
-	_OpName[372:383],
-	_OpName[383:389],
+	_OpName[298:302],
+	_OpName[302:308],
+	_OpName[308:312],
+	_OpName[312:317],
+	_OpName[317:331],
+	_OpName[331:344],
+	_OpName[344:357],
+	_OpName[357:369],
+	_OpName[369:380],
+	_OpName[380:386],
 }
 
 // OpString retrieves an enum value from the enum constants string name.

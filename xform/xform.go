@@ -121,6 +121,7 @@ func Transform(pass Pass, fn *ir.Func) {
 		}
 
 		if !it.HasChanged() {
+			fn.EliminateDeadCode()
 			break
 		}
 

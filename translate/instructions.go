@@ -114,7 +114,6 @@ var opcodeMap = [...]op.Op{
 
 	// Other Operators
 	llvm.FCmp:   op.FCmp,
-	llvm.PHI:    op.PHI,
 	llvm.Call:   op.Call,
 	llvm.Select: op.Select,
 

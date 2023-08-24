@@ -137,7 +137,6 @@ const (
 	BitCast
 
 	// Other Operators
-	PHI
 	Call
 	Select
 	Copy
@@ -157,8 +156,13 @@ const (
 var opDefs = [...]def{
 	Copy:         move,
 	Store:        sink,
-	Jump:         sink,
+	Ret:          sink,
 	If:           sink,
+	Jump:         sink,
+	Switch:       sink,
+	IndirectBr:   sink,
+	Invoke:       sink,
+	Unreachable:  sink,
 	Add:          commute,
 	Mul:          commute,
 	And:          commute,
