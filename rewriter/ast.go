@@ -12,7 +12,9 @@ type rule struct {
 	cond  ast.Expr
 	repl  value
 	vars  map[string]*variable
-	loc   string
+
+	loc string
+	pkg string
 
 	// state
 	instrs int

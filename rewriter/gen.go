@@ -11,15 +11,16 @@ import (
 	"log"
 	"os"
 	"slices"
+	"strings"
 )
 
 func Generate(name, rulesfile, outfile, pkg string) {
-	rules, err := parse(rulesfile)
+	rules, err := parse(rulesfile, pkg)
 	if err != nil {
 		panic(err)
 	}
 
-	fn, err := gen(name, rules)
+	fn, err := gen(name, pkg, rules)
 	if err != nil {
 		log.Fatalf("%s: %s", rulesfile, err)
 	}
@@ -53,7 +54,7 @@ func Generate(name, rulesfile, outfile, pkg string) {
 	}
 }
 
-func gen(name string, rules []rule) (*ast.FuncDecl, error) {
+func gen(name, pkg string, rules []rule) (*ast.FuncDecl, error) {
 	var order []string
 	oprules := map[string][]*rule{}
 	for i := range rules {
@@ -81,7 +82,8 @@ func gen(name string, rules []rule) (*ast.FuncDecl, error) {
 	stmts = append(stmts, swtch)
 
 	for _, op := range order {
-		opexpr, err := parser.ParseExpr(op)
+		opstr := strings.Replace(op, pkg+".", "", 1)
+		opexpr, err := parser.ParseExpr(opstr)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse op expr: %s", op)
 		}
@@ -172,7 +174,11 @@ func (r *rule) genMatch(vname string, instr *instruction, stmts []ast.Stmt) []as
 		if v, ok := def.(*instruction); ok {
 			name := fmt.Sprintf("%s_def%d", vname, i)
 
-			stmts = append(stmts, declf(name, "%s.Def(%d).Def().Instr()", vname, i))
+			stmts = append(stmts, breakf("%s.Def(%d).NumUses() != 1", vname, i))
+
+			stmts = append(stmts, declf(name, "%s.Def(%d).Use(0).Instr()", vname, i))
+
+			stmts = append(stmts, breakf("%s.Op != %s", name, v.opstr))
 
 			stmts = r.genMatch(name, v, stmts)
 			continue
@@ -185,7 +191,7 @@ func (r *rule) genMatch(vname string, instr *instruction, stmts []ast.Stmt) []as
 		stmts = append(stmts, breakf("%s.NumArgs() != %d", vname, len(instr.args)))
 	}
 
-	commutative := instr.op.IsCommutative()
+	commutative := instr.op.IsCommutative() && len(instr.args) >= 2
 	if commutative {
 		if instr.args[0] == instr.args[1] {
 			// if the args are identical they are interchanable

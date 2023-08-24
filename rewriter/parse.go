@@ -16,7 +16,7 @@ import (
 
 var types = &typ.Types{}
 
-func parse(filename string) ([]rule, error) {
+func parse(filename, pkg string) ([]rule, error) {
 	var rules []rule
 
 	file, err := os.Open(filename)
@@ -58,7 +58,7 @@ func parse(filename string) ([]rule, error) {
 			continue
 		}
 
-		rules = append(rules, rule{loc: fmt.Sprintf("%s:%d", filename, ruleline)})
+		rules = append(rules, rule{loc: fmt.Sprintf("%s:%d", filename, ruleline), pkg: pkg})
 		parseRule(rulestr, &rules[len(rules)-1])
 
 		ruleline = 0
@@ -97,10 +97,6 @@ func normalizeSpaces(s string) string {
 }
 
 func splitSexpr(str string) []string {
-	if str[0] == '(' {
-		str = str[1 : len(str)-1]
-	}
-
 	var res []string
 outer:
 	for str != "" {
@@ -138,6 +134,11 @@ outer:
 					depth++
 				case str[i] == close:
 					depth--
+					if depth == 0 {
+						res = append(res, strings.TrimSpace(str[:i+1]))
+						str = str[i+1:]
+						continue outer
+					}
 				}
 			}
 		}
@@ -217,7 +218,10 @@ func (r *rule) parseInstr(str string) *instruction {
 		instr.op, err = rj32.OpcodeString(opparts[1])
 	}
 	if err != nil {
-		log.Panicf("%s: could not parse op %s: %v", r.loc, instr.opstr, err)
+		log.Fatalf("%s: could not parse op %s: %v", r.loc, instr.opstr, err)
+	}
+	if opparts[0] == r.pkg {
+		instr.opstr = opparts[1]
 	}
 
 	if parts[0][0] == '<' {
@@ -226,7 +230,7 @@ func (r *rule) parseInstr(str string) *instruction {
 		parts = parts[1:]
 		instr.typ, err = types.Parse(typstr)
 		if err != nil {
-			log.Panicf("could not parse type %s: %v", typstr, err)
+			log.Fatalf("could not parse type %s: %v", typstr, err)
 		}
 	}
 

@@ -6,7 +6,7 @@ import (
 
 type Opcode int
 
-//go:generate go run github.com/dmarkham/enumer -type=Opcode -transform snake
+//go:generate go run github.com/dmarkham/enumer -type=Opcode -transform lower
 
 const (
 	// Natively implemented instructions

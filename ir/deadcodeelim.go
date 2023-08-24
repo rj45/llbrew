@@ -12,9 +12,15 @@ func (fn *Func) EliminateDeadCode() {
 			for _, def := range instr.defs {
 				if len(def.uses) > 0 {
 					hasUse = true
+					break
 				}
 				if def.InReg() {
-					hasUse = true
+					reg := def.Reg()
+					if reg.IsSpecialReg() || reg.IsSavedReg() {
+						// todo: figure out how to differenciate logue regs
+						hasUse = true
+						break
+					}
 				}
 			}
 			// todo: how to eliminate dead stores?

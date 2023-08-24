@@ -1,0 +1,47 @@
+// calls and jumps
+(op.Ret ...) => (rj32.Return ...)
+(op.Jump ...) => (rj32.Jump ...)
+(op.Call ...) => (rj32.Call ...)
+
+// branches
+(op.If (op.Equal         a b)) => (rj32.IfEq  a b)
+(op.If (op.NotEqual      a b)) => (rj32.IfNe  a b)
+(op.If (op.Less          a b)) => (rj32.IfLt  a b)
+(op.If (op.LessEqual     a b)) => (rj32.IfLe  a b)
+(op.If (op.Greater       a b)) => (rj32.IfGt  a b)
+(op.If (op.GreaterEqual  a b)) => (rj32.IfGe  a b)
+(op.If (op.ULess         a b)) => (rj32.IfUlt a b)
+(op.If (op.ULessEqual    a b)) => (rj32.IfUle a b)
+(op.If (op.UGreater      a b)) => (rj32.IfUgt a b)
+(op.If (op.UGreaterEqual a b)) => (rj32.IfUge a b)
+
+// alu instrs
+(op.Add ...) => (rj32.Add ...)
+(op.Sub ...) => (rj32.Sub ...)
+(op.And ...) => (rj32.And ...)
+(op.Or ...) => (rj32.Or ...)
+(op.Xor ...) => (rj32.Xor ...)
+(op.Shl ...) => (rj32.Shl ...)
+(op.LShr ...) => (rj32.Shr ...)
+(op.AShr ...) => (rj32.Asr ...)
+(op.SExt ...) => (rj32.Sxt ...)
+
+// loads
+(op.Load a) && !a.IsConst() => (rj32.Load a 0)
+(op.Load a) && a.IsConst() => (rj32.Load reg.GP a)
+(op.Load a b) && b.IsConst() => (rj32.Load a b)
+(op.Load a b) && !b.IsConst() => (rj32.Load (rj32.Add a b) 0)
+
+// load simplifications
+(rj32.Load (rj32.Add (rj32.Move a) b) 0) && b.IsConst() => (rj32.Load a b)
+(rj32.Load (rj32.Add a b) 0) && b.IsConst() => (rj32.Load a b)
+
+// stores
+(op.Store a b) && !a.IsConst() => (rj32.Store a 0 b)
+(op.Store a b) && a.IsConst() => (rj32.Store reg.GP a b)
+(op.Store a b c) && b.IsConst() => (rj32.Store a b c)
+(op.Store a b c) && !b.IsConst() => (rj32.Store (rj32.Add a b) 0 c)
+
+// store simplifications
+(rj32.Store (rj32.Add (rj32.Move a) b) 0 c) && b.IsConst() => (rj32.Store a b c)
+(rj32.Store (rj32.Add a b) 0 c) && b.IsConst() => (rj32.Store a b c)

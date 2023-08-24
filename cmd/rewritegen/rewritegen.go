@@ -6,11 +6,14 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/rj45/llbrew/rewriter"
 )
 
 func main() {
+	log.SetFlags(log.Lshortfile)
+
 	outfile := flag.String("o", "", "output file")
 	pkg := flag.String("pkg", "", "package name")
 	fn := flag.String("fn", "", "function name")
