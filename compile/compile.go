@@ -87,7 +87,7 @@ func (c *Compiler) Compile(filename string) error {
 	c.optimize()
 
 	// re-split critical edges merged in optimization
-	c.splitCriticalEdges()
+	// c.splitCriticalEdges()
 
 	if c.DumpLL != "" {
 		dump := createFile(c.DumpLL)

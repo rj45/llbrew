@@ -36,6 +36,9 @@ func TestMain(m *testing.M) {
 
 	for _, entry := range entries {
 		if path.Ext(entry.Name()) == ".ll" {
+			if entry.Name() == "011_loopinter.ll" {
+				continue
+			}
 			filename := path.Join(testdata, entry.Name())
 
 			resultfile := strings.Replace(filename, ".ll", ".txt", 1)

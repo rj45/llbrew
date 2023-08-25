@@ -2,6 +2,8 @@ package compile
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"tinygo.org/x/go-llvm"
 )
@@ -59,35 +61,81 @@ func (c *Compiler) optimize() {
 	// 	}
 	// }
 
-	passBuilder := llvm.NewPassManagerBuilder()
-	defer passBuilder.Dispose()
+	// passBuilder := llvm.NewPassManagerBuilder()
+	// defer passBuilder.Dispose()
 
-	passBuilder.SetOptLevel(c.OptSpeed)
-	passBuilder.SetSizeLevel(c.OptSize)
+	// passBuilder.SetOptLevel(c.OptSpeed)
+	// passBuilder.SetSizeLevel(c.OptSize)
+	// passBuilder.SetDisableUnrollLoops(true)
 
-	{
-		passManager := llvm.NewFunctionPassManagerForModule(c.mod)
-		defer passManager.Dispose()
-		passBuilder.PopulateFunc(passManager)
+	// {
+	// 	passManager := llvm.NewFunctionPassManagerForModule(c.mod)
+	// 	defer passManager.Dispose()
+	// 	passBuilder.PopulateFunc(passManager)
 
-		passManager.InitializeFunc()
-		for fn := c.mod.FirstFunction(); !fn.IsNil(); fn = llvm.NextFunction(fn) {
-			passManager.RunFunc(fn)
+	// 	passManager.InitializeFunc()
+	// 	for fn := c.mod.FirstFunction(); !fn.IsNil(); fn = llvm.NextFunction(fn) {
+	// 		passManager.RunFunc(fn)
+	// 	}
+	// 	passManager.FinalizeFunc()
+	// }
+
+	// {
+	// 	modPasses := llvm.NewPassManager()
+	// 	defer modPasses.Dispose()
+	// 	passBuilder.Populate(modPasses)
+	// 	modPasses.Run(c.mod)
+	// }
+
+	pbo := llvm.NewPassBuilderOptions()
+	defer pbo.Dispose()
+
+	pbo.SetLoopInterleaving(false)
+	pbo.SetLoopVectorization(false)
+	pbo.SetSLPVectorization(false)
+
+	defaultPass := "default<O0>"
+
+	if c.OptSize > 0 {
+		switch c.OptSize {
+		case 1:
+			defaultPass = "default<Os>"
+		case 2:
+			defaultPass = "default<Oz>"
 		}
-		passManager.FinalizeFunc()
+	} else {
+		switch c.OptSpeed {
+		case 1:
+			defaultPass = "default<O1>"
+		case 2:
+			defaultPass = "default<O2>"
+		case 3:
+			defaultPass = "default<O3>"
+		}
 	}
 
-	{
-		modPasses := llvm.NewPassManager()
-		defer modPasses.Dispose()
-		passBuilder.Populate(modPasses)
-		modPasses.Run(c.mod)
+	targ, err := llvm.GetTargetFromTriple(c.mod.Target())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tm := targ.CreateTargetMachine(c.mod.Target(), "", "", llvm.CodeGenLevelAggressive, llvm.RelocStatic, llvm.CodeModelSmall)
+
+	passes := []string{
+		defaultPass,
+		"break-crit-edges",
+	}
+
+	err = c.mod.RunPasses(strings.Join(passes, ","), tm, pbo)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// err = llvm.VerifyModule(mod, llvm.PrintMessageAction)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
+
 }
 
 func (c *Compiler) splitCriticalEdges() {

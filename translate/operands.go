@@ -74,9 +74,11 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 			instr.Dump()
 			fmt.Println(" encountered")
 
+		case llvm.VectorTypeKind:
+
 		default:
 			ntyp := trans.translateType(opertyp)
-			log.Panicf("todo: other operand types: %s", ntyp.String())
+			log.Panicf("todo: other operand types: %s %s", ntyp.String(), opertyp.TypeKind())
 		}
 
 	}

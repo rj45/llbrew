@@ -15,4 +15,4 @@ require (
 	golang.org/x/tools v0.1.12 // indirect
 )
 
-replace tinygo.org/x/go-llvm v0.0.0-20230505123812-8e7ec80422a4 => github.com/rj45/go-llvm v0.0.0-20230816153029-41ff177f9d64
+replace tinygo.org/x/go-llvm v0.0.0-20230505123812-8e7ec80422a4 => github.com/rj45/go-llvm v0.0.0-20230825024737-9228ca191f0a
