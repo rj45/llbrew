@@ -86,9 +86,6 @@ func (c *Compiler) Compile(filename string) error {
 	// run the LLVM optimizer
 	c.optimize()
 
-	// re-split critical edges merged in optimization
-	// c.splitCriticalEdges()
-
 	if c.DumpLL != "" {
 		dump := createFile(c.DumpLL)
 		defer dump.Close()
