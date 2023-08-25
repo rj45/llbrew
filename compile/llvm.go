@@ -49,6 +49,7 @@ func (c *Compiler) optimize() {
 	pbo := llvm.NewPassBuilderOptions()
 	defer pbo.Dispose()
 
+	// disable vectorization... I am not going to implement SIMD support
 	pbo.SetLoopInterleaving(false)
 	pbo.SetLoopVectorization(false)
 	pbo.SetSLPVectorization(false)
@@ -78,10 +79,29 @@ func (c *Compiler) optimize() {
 		log.Fatal(err)
 	}
 
-	tm := targ.CreateTargetMachine(c.mod.Target(), "", "", llvm.CodeGenLevelAggressive, llvm.RelocStatic, llvm.CodeModelSmall)
+	tm := targ.CreateTargetMachine(c.mod.Target(), "", "",
+		llvm.CodeGenLevelAggressive, llvm.RelocStatic, llvm.CodeModelSmall)
 
 	passes := []string{
 		defaultPass,
+
+		// this pass makes it so exception invokes are converted to calls instead
+		// thus making less work for us. This can be removed once invoke is supported.
+		"lowerinvoke",
+
+		// This lowers switch statements to a series of branches. This can be removed
+		// when jump tables are supported.
+		"lowerswitch",
+
+		// Merge return makes it so only one return statement exists, thus the function
+		// epilogue only gets generated once
+		"mergereturn",
+
+		// Simplify the control flow graph. lowerinvoke needs this to clean up the dead branches.
+		"simplifycfg",
+
+		// breaking critical edges is important to do last, since it's required by the
+		// register allocator.
 		"break-crit-edges",
 	}
 
