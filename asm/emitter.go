@@ -221,30 +221,52 @@ func (emit *Emitter) global(glob *ir.Global) {
 		emit.ensureSection(Bss)
 	}
 	emit.line("%s:", emit.fmter.GlobalLabel(glob))
-	if glob.Value == nil {
-		size := glob.Type.(*typ.Integer).Bits() / sizes.MinAddressableBits()
+	emit.globalValue(glob.Value, glob.Type)
+	emit.line("")
+}
+
+func (emit *Emitter) globalValue(cval ir.Const, globtype typ.Type) {
+	if cval == nil {
+		size := globtype.(*typ.Integer).Bits() / sizes.MinAddressableBits()
 		emit.line("%s", emit.fmter.Reserve(int(size)))
-	} else if str, ok := ir.StringValue(glob.Value); ok {
+	} else if str, ok := ir.StringValue(cval); ok {
 		emit.line("%s", emit.fmter.String(str))
-	} else if val, ok := ir.IntValue(glob.Value); ok {
+	} else if val, ok := ir.IntValue(cval); ok {
 		emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val)))
-	} else if val, ok := ir.StructValue(glob.Value); ok {
-		types := glob.Type.(*typ.Struct).Elements
-		for i, t := range types {
-			switch t.Kind() {
+	} else if val, ok := ir.StructValue(cval); ok {
+		if arr, ok := globtype.(*typ.Array); ok {
+			switch arr.Element.Kind() {
+			case typ.ArrayKind, typ.StructKind:
+				for _, val := range val {
+					emit.globalValue(val, arr.Element)
+				}
 			case typ.IntegerKind:
-				emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val[i])))
+				for _, val := range val {
+					emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val)))
+				}
 			case typ.PointerKind:
-				emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", 0)))
+				for range val {
+					emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", 0)))
+				}
 			default:
 				panic("implement more types")
 			}
+		} else {
+			types := globtype.(*typ.Struct).Elements
+			for i, t := range types {
+				switch t.Kind() {
+				case typ.IntegerKind:
+					emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", val[i])))
+				case typ.PointerKind:
+					emit.line("%s", emit.fmter.Word(fmt.Sprintf("%d", 0)))
+				default:
+					panic("implement more types")
+				}
+			}
 		}
-
 	} else {
 		panic("todo: implement more types")
 	}
-	emit.line("")
 }
 
 func (emit *Emitter) scan(fn *ir.Func, funcs []*ir.Func, globals []*ir.Global) ([]*ir.Func, []*ir.Global) {

@@ -34,60 +34,6 @@ func rewrite(it ir.Iter) {
 			it.Changed()
 			break
 		}
-	case op.Add:
-		for {
-			instr.Op = Add
-			it.Changed()
-			break
-		}
-	case op.Sub:
-		for {
-			instr.Op = Sub
-			it.Changed()
-			break
-		}
-	case op.And:
-		for {
-			instr.Op = And
-			it.Changed()
-			break
-		}
-	case op.Or:
-		for {
-			instr.Op = Or
-			it.Changed()
-			break
-		}
-	case op.Xor:
-		for {
-			instr.Op = Xor
-			it.Changed()
-			break
-		}
-	case op.Shl:
-		for {
-			instr.Op = Shl
-			it.Changed()
-			break
-		}
-	case op.LShr:
-		for {
-			instr.Op = Shr
-			it.Changed()
-			break
-		}
-	case op.AShr:
-		for {
-			instr.Op = Asr
-			it.Changed()
-			break
-		}
-	case op.SExt:
-		for {
-			instr.Op = Sxt
-			it.Changed()
-			break
-		}
 	case op.If:
 		for {
 			var a, b *ir.Value
@@ -259,6 +205,60 @@ func rewrite(it ir.Iter) {
 			it.Update(IfUge, instr.Type(), a, b)
 			break
 		}
+	case op.Add:
+		for {
+			instr.Op = Add
+			it.Changed()
+			break
+		}
+	case op.Sub:
+		for {
+			instr.Op = Sub
+			it.Changed()
+			break
+		}
+	case op.And:
+		for {
+			instr.Op = And
+			it.Changed()
+			break
+		}
+	case op.Or:
+		for {
+			instr.Op = Or
+			it.Changed()
+			break
+		}
+	case op.Xor:
+		for {
+			instr.Op = Xor
+			it.Changed()
+			break
+		}
+	case op.Shl:
+		for {
+			instr.Op = Shl
+			it.Changed()
+			break
+		}
+	case op.LShr:
+		for {
+			instr.Op = Shr
+			it.Changed()
+			break
+		}
+	case op.AShr:
+		for {
+			instr.Op = Asr
+			it.Changed()
+			break
+		}
+	case op.SExt:
+		for {
+			instr.Op = Sxt
+			it.Changed()
+			break
+		}
 	case op.Load:
 		for {
 			var a *ir.Value
@@ -266,7 +266,7 @@ func rewrite(it ir.Iter) {
 				break
 			}
 			a = instr.Arg(0)
-			if !(!a.IsConst()) {
+			if !(a.NeedsReg()) {
 				break
 			}
 			it.Update(Load, instr.Type(), a, 0)
@@ -278,7 +278,7 @@ func rewrite(it ir.Iter) {
 				break
 			}
 			a = instr.Arg(0)
-			if !(a.IsConst()) {
+			if !(!a.NeedsReg()) {
 				break
 			}
 			it.Update(Load, instr.Type(), reg.GP, a)
@@ -291,7 +291,7 @@ func rewrite(it ir.Iter) {
 			}
 			a = instr.Arg(0)
 			b = instr.Arg(1)
-			if !(b.IsConst()) {
+			if !(!b.NeedsReg()) {
 				break
 			}
 			it.Update(Load, instr.Type(), a, b)
@@ -304,7 +304,7 @@ func rewrite(it ir.Iter) {
 			}
 			a = instr.Arg(0)
 			b = instr.Arg(1)
-			if !(!b.IsConst()) {
+			if !(b.NeedsReg()) {
 				break
 			}
 			i0 := it.Insert(Add, a.Type, a, b)
@@ -337,7 +337,7 @@ func rewrite(it ir.Iter) {
 			if !instr.Arg(1).HasConstValue(0) {
 				break
 			}
-			if !(b.IsConst()) {
+			if !(!b.NeedsReg()) {
 				break
 			}
 			it.Update(Load, instr.Type(), a, b)
@@ -360,7 +360,7 @@ func rewrite(it ir.Iter) {
 			if !instr.Arg(1).HasConstValue(0) {
 				break
 			}
-			if !(b.IsConst()) {
+			if !(!b.NeedsReg()) {
 				break
 			}
 			it.Update(Load, instr.Type(), a, b)
@@ -374,7 +374,7 @@ func rewrite(it ir.Iter) {
 			}
 			a = instr.Arg(0)
 			b = instr.Arg(1)
-			if !(!a.IsConst()) {
+			if !(a.NeedsReg()) {
 				break
 			}
 			it.Update(Store, instr.Type(), a, 0, b)
@@ -387,7 +387,7 @@ func rewrite(it ir.Iter) {
 			}
 			a = instr.Arg(0)
 			b = instr.Arg(1)
-			if !(a.IsConst()) {
+			if !(!a.NeedsReg()) {
 				break
 			}
 			it.Update(Store, instr.Type(), reg.GP, a, b)
@@ -401,7 +401,7 @@ func rewrite(it ir.Iter) {
 			a = instr.Arg(0)
 			b = instr.Arg(1)
 			c = instr.Arg(2)
-			if !(b.IsConst()) {
+			if !(!b.NeedsReg()) {
 				break
 			}
 			it.Update(Store, instr.Type(), a, b, c)
@@ -415,7 +415,7 @@ func rewrite(it ir.Iter) {
 			a = instr.Arg(0)
 			b = instr.Arg(1)
 			c = instr.Arg(2)
-			if !(!b.IsConst()) {
+			if !(b.NeedsReg()) {
 				break
 			}
 			i0 := it.Insert(Add, a.Type, a, b)
@@ -449,7 +449,7 @@ func rewrite(it ir.Iter) {
 				break
 			}
 			c = instr.Arg(2)
-			if !(b.IsConst()) {
+			if !(!b.NeedsReg()) {
 				break
 			}
 			it.Update(Store, instr.Type(), a, b, c)
@@ -473,7 +473,7 @@ func rewrite(it ir.Iter) {
 				break
 			}
 			c = instr.Arg(2)
-			if !(b.IsConst()) {
+			if !(!b.NeedsReg()) {
 				break
 			}
 			it.Update(Store, instr.Type(), a, b, c)

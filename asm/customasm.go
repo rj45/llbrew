@@ -40,7 +40,8 @@ func (CustomASM) String(val string) string {
 	case 8:
 		return fmt.Sprintf("#d %q", val)
 	case 16:
-		return fmt.Sprintf("#d utf16le(%q)", val)
+		// todo: this is arch dependant as it depends on whether it's logisim16 or hex as output
+		return fmt.Sprintf("#d utf16be(%q)", val)
 	case 32:
 		return fmt.Sprintf("#d utf32le(%q)", val)
 	}

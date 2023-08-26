@@ -206,6 +206,19 @@ func (use *User) ReplaceArg(i int, arg *Value) {
 	use.args[i].addUse(use)
 }
 
+// Destroy removes all args and defs, thus removing references
+// to other instructions
+func (use *User) Destroy() {
+	for _, def := range use.defs {
+		def.def = nil
+	}
+	use.defs = use.defstorage[:0]
+	for _, arg := range use.args {
+		arg.removeUse(use)
+	}
+	use.args = use.argstorage[:0]
+}
+
 func (use *User) SetCallRegisters(args bool, kind SlotKind) {
 	// set the ABI registers / stack slots for either defs or args
 	// replace a few places that this is calculated with this function

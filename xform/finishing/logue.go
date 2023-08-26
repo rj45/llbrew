@@ -68,6 +68,7 @@ func logue(it ir.Iter) {
 					slot := frame.SlotID(ir.SavedSlot, index)
 					load := it.Insert(op.Load, types.IntegerWordType(), reg.SP, slot)
 					load.Def(0).SetReg(sreg)
+					load.Def(0).ForceAlive()
 					index++
 				}
 			}
@@ -75,6 +76,7 @@ func logue(it ir.Iter) {
 				slot := frame.SlotID(ir.SavedSlot, index)
 				load := it.Insert(op.Load, types.PointerType(types.VoidType(), 0), reg.SP, slot)
 				load.Def(0).SetReg(reg.RA)
+				load.Def(0).ForceAlive()
 			}
 		}
 	}
@@ -85,10 +87,12 @@ func logue(it ir.Iter) {
 		it.Insert(op.Store, types.PointerType(types.VoidType(), 0), reg.SP, 0, reg.SP)
 		add := it.Insert(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, -frame.FrameSize())
 		add.Def(0).SetReg(reg.SP)
+		add.Def(0).ForceAlive()
 
 		for _, ret := range rets {
 			add := fn.NewInstr(op.Add, types.PointerType(types.VoidType(), 0), reg.SP, frame.FrameSize())
 			add.Def(0).SetReg(reg.SP)
+			add.Def(0).ForceAlive()
 
 			ret.Block().InsertInstr(ret.Index(), add)
 		}

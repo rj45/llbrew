@@ -51,48 +51,65 @@ var _ = xform.Register(getElementPtr,
 
 func getElementPtr(it ir.Iter) {
 	instr := it.Instr()
+	types := instr.Func().Types()
 
-	base := instr.Arg(0)
-	index := instr.Arg(1)
-
-	pointedto := base.Type.(*typ.Pointer).Element
-
+	addr := instr.Arg(0)
+	ptrtyp := addr.Type
+	elemtyp := addr.Type
 	offset := 0
 
-	if index.IsConst() {
-		index, ok := ir.IntValue(instr.Arg(1).Const())
-		if !ok {
-			// handled by getElementPtr
-			return
+	for a := 1; a < instr.NumArgs(); a++ {
+		index := instr.Arg(a)
+		iindex := 0
+		if index.IsConst() {
+			iindex, _ = ir.IntValue(index.Const())
 		}
-		offset = pointedto.SizeOf() * index
-	} else {
-		if pointedto.SizeOf() > 1 {
-			mul := it.Insert(op.Mul, base.Type, index, pointedto.SizeOf())
-			index = mul.Def(0)
-		}
-		add := it.Insert(op.Add, base.Type, base, index)
-		base = add.Def(0)
-	}
+		et, elemoffset := elementOffsetType(elemtyp, iindex)
 
-	elemtyp := pointedto
-	if st, ok := pointedto.(*typ.Struct); ok {
-		element, ok := ir.IntValue(instr.Arg(2).Const())
-		if !ok {
-			// todo: handle if this is in a register
-			panic("bad assumption, expecting element to be int const")
-		}
-		offset += st.OffsetOf(element)
-		elemtyp = st.Elements[element]
-	}
+		elemtyp = et
+		ptrtyp = types.PointerType(et, 0)
 
-	elemtypptr := instr.Func().Types().PointerType(elemtyp, 0)
+		if index.IsConst() {
+			offset += elemoffset
+		} else {
+			if et.SizeOf() > 1 {
+				mul := it.Insert(op.Mul, ptrtyp, index, elemtyp.SizeOf())
+				index = mul.Def(0)
+			}
+			if offset > 0 {
+				// clear accumulated offset
+				add := it.Insert(op.Add, ptrtyp, addr, offset)
+				addr = add.Def(0)
+				offset = 0
+			}
+			add := it.Insert(op.Add, ptrtyp, addr, index)
+			addr = add.Def(0)
+		}
+	}
 
 	if offset == 0 {
-		instr.Def(0).ReplaceUsesWith(base)
+		instr.Def(0).ReplaceUsesWith(addr)
 		it.RemoveInstr(instr)
 		return
 	}
 
-	it.Update(op.Add, elemtypptr, base, offset)
+	it.Update(op.Add, ptrtyp, addr, offset)
+}
+
+func elementOffsetType(t typ.Type, index int) (et typ.Type, offset int) {
+	switch t := t.(type) {
+	case *typ.Pointer:
+		et = t.Element
+		offset = et.SizeOf() * index
+	case *typ.Array:
+		et = t.Element
+		offset = et.SizeOf() * index
+	case *typ.Struct:
+		et = t.Elements[index]
+		offset = t.OffsetOf(index)
+	default:
+		offset = 0
+		et = t
+	}
+	return
 }

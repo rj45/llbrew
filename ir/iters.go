@@ -179,13 +179,12 @@ func (it *BlockIter) InsertAfter(op Op, typ typ.Type, args ...interface{}) *Inst
 
 // Remove will remove the instruction at the current position and decrement the position,
 // returning the removed instruction.
-// NOTE: this only removes the instruction from the Block, it does not Unlink() it from
-// any uses.
 func (it *BlockIter) Remove() *Instr {
 	instr := it.blk.instrs[it.insIdx]
 
 	// todo: replace with RemoveInstrAt()?
 	it.blk.RemoveInstr(instr)
+	instr.Destroy()
 	it.Prev()
 
 	it.changed = true
@@ -197,6 +196,8 @@ func (it *BlockIter) Remove() *Instr {
 // sure to adjust the iterator position appropriately
 func (it *BlockIter) RemoveInstr(instr *Instr) {
 	it.changed = true
+
+	instr.Destroy()
 
 	index := instr.Index()
 	if instr.blk != it.blk {

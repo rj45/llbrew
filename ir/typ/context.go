@@ -147,6 +147,7 @@ func (ctx *Types) string(t Type, refs map[Type]string) string {
 		refs[t] = t.(*Struct).Reference()
 		return t.(*Struct).string(refs)
 	case ArrayKind:
+		return t.(*Array).string(refs)
 	case PointerKind:
 		return t.(*Pointer).string(refs)
 	}

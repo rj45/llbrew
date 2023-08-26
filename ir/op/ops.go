@@ -65,6 +65,14 @@ func (op Op) Opposite() Op {
 		return LessEqual
 	case GreaterEqual:
 		return Less
+	case ULess:
+		return UGreaterEqual
+	case ULessEqual:
+		return UGreater
+	case UGreater:
+		return ULessEqual
+	case UGreaterEqual:
+		return ULess
 	}
 	return op
 }
@@ -154,25 +162,29 @@ const (
 )
 
 var opDefs = [...]def{
-	Copy:         move,
-	Store:        sink,
-	Ret:          sink,
-	If:           sink,
-	Jump:         sink,
-	Switch:       sink,
-	IndirectBr:   sink,
-	Invoke:       sink,
-	Unreachable:  sink,
-	Add:          commute,
-	Mul:          commute,
-	And:          commute,
-	Or:           commute,
-	Xor:          commute,
-	Equal:        compare | commute,
-	NotEqual:     compare | commute,
-	Less:         compare,
-	LessEqual:    compare,
-	Greater:      compare,
-	GreaterEqual: compare,
-	NumOps:       0, // make sure array is large enough
+	Copy:          move,
+	Store:         sink,
+	Ret:           sink,
+	If:            sink,
+	Jump:          sink,
+	Switch:        sink,
+	IndirectBr:    sink,
+	Invoke:        sink,
+	Unreachable:   sink,
+	Add:           commute,
+	Mul:           commute,
+	And:           commute,
+	Or:            commute,
+	Xor:           commute,
+	Equal:         compare | commute,
+	NotEqual:      compare | commute,
+	Less:          compare,
+	LessEqual:     compare,
+	Greater:       compare,
+	GreaterEqual:  compare,
+	ULess:         compare,
+	ULessEqual:    compare,
+	UGreater:      compare,
+	UGreaterEqual: compare,
+	NumOps:        0, // make sure array is large enough
 }

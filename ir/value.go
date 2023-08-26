@@ -201,6 +201,12 @@ func (val *Value) MoveToStack(kind SlotKind) {
 	val.SetStackSlot(val.def.fn.Frame.NewSlotID(kind))
 }
 
+// ForceAlive ensures dead code elimination sees this value as alive
+func (val *Value) ForceAlive() {
+	fn := val.def.fn
+	fn.alive = append(fn.alive, val)
+}
+
 // const
 
 // IsConst returns if the Value is constant.

@@ -27,21 +27,21 @@
 (op.SExt ...) => (rj32.Sxt ...)
 
 // loads
-(op.Load a) && !a.IsConst() => (rj32.Load a 0)
-(op.Load a) && a.IsConst() => (rj32.Load reg.GP a)
-(op.Load a b) && b.IsConst() => (rj32.Load a b)
-(op.Load a b) && !b.IsConst() => (rj32.Load (rj32.Add a b) 0)
+(op.Load a) && a.NeedsReg() => (rj32.Load a 0)
+(op.Load a) && !a.NeedsReg() => (rj32.Load reg.GP a)
+(op.Load a b) && !b.NeedsReg() => (rj32.Load a b)
+(op.Load a b) && b.NeedsReg() => (rj32.Load (rj32.Add a b) 0)
 
 // load simplifications
-(rj32.Load (rj32.Add (rj32.Move a) b) 0) && b.IsConst() => (rj32.Load a b)
-(rj32.Load (rj32.Add a b) 0) && b.IsConst() => (rj32.Load a b)
+(rj32.Load (rj32.Add (rj32.Move a) b) 0) && !b.NeedsReg() => (rj32.Load a b)
+(rj32.Load (rj32.Add a b) 0) && !b.NeedsReg() => (rj32.Load a b)
 
 // stores
-(op.Store a b) && !a.IsConst() => (rj32.Store a 0 b)
-(op.Store a b) && a.IsConst() => (rj32.Store reg.GP a b)
-(op.Store a b c) && b.IsConst() => (rj32.Store a b c)
-(op.Store a b c) && !b.IsConst() => (rj32.Store (rj32.Add a b) 0 c)
+(op.Store a b) && a.NeedsReg() => (rj32.Store a 0 b)
+(op.Store a b) && !a.NeedsReg() => (rj32.Store reg.GP a b)
+(op.Store a b c) && !b.NeedsReg() => (rj32.Store a b c)
+(op.Store a b c) && b.NeedsReg() => (rj32.Store (rj32.Add a b) 0 c)
 
 // store simplifications
-(rj32.Store (rj32.Add (rj32.Move a) b) 0 c) && b.IsConst() => (rj32.Store a b c)
-(rj32.Store (rj32.Add a b) 0 c) && b.IsConst() => (rj32.Store a b c)
+(rj32.Store (rj32.Add (rj32.Move a) b) 0 c) && !b.NeedsReg() => (rj32.Store a b c)
+(rj32.Store (rj32.Add a b) 0 c) && !b.NeedsReg() => (rj32.Store a b c)

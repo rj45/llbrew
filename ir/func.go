@@ -25,6 +25,9 @@ type Func struct {
 	numParamSlots  int
 	stackSpillSize int
 
+	// forced-alive values that DCE won't eliminate
+	alive []*Value
+
 	pkg *Package
 
 	blocks []*Block

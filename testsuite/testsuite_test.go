@@ -36,9 +36,9 @@ func TestMain(m *testing.M) {
 
 	for _, entry := range entries {
 		if path.Ext(entry.Name()) == ".ll" {
-			if entry.Name() == "011_loopinter.ll" {
-				continue
-			}
+			// if entry.Name() == "011_loopinter.ll" {
+			// 	continue
+			// }
 			filename := path.Join(testdata, entry.Name())
 
 			resultfile := strings.Replace(filename, ".ll", ".txt", 1)
@@ -102,6 +102,9 @@ func TestUnoptimized(t *testing.T) {
 				} else {
 					t.Fatal(err)
 				}
+			}
+			if err == nil && tc.result != "0" {
+				t.Fatal("expecting a non-zero result!")
 			}
 		})
 	}

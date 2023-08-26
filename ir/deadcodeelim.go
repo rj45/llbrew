@@ -3,6 +3,11 @@ package ir
 // EliminateDeadCode eliminates dead code until the code stops
 // changing.
 func (fn *Func) EliminateDeadCode() {
+	alive := map[*Value]bool{}
+	for _, v := range fn.alive {
+		alive[v] = true
+	}
+
 	changed := true
 	for changed {
 		changed = false
@@ -14,19 +19,13 @@ func (fn *Func) EliminateDeadCode() {
 					hasUse = true
 					break
 				}
-				if def.InReg() {
-					reg := def.Reg()
-					if reg.IsSpecialReg() || reg.IsSavedReg() {
-						// todo: figure out how to differenciate logue regs
-						hasUse = true
-						break
-					}
+				if alive[def] {
+					hasUse = true
 				}
 			}
 			// todo: how to eliminate dead stores?
-			if !hasUse && !instr.IsSink() {
+			if !hasUse && !instr.IsSink() && !instr.IsCall() {
 				it.Remove()
-				it.Prev()
 				changed = true
 			}
 		}
