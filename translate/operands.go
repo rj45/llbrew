@@ -59,8 +59,12 @@ func (trans *translator) translateOperands(instr llvm.Value, ninstr *ir.Instr) {
 				ninstr.Block().InsertInstr(ninstr.Index(), gep)
 				trans.translateOperands(operand, gep)
 				ninstr.InsertArg(-1, gep.Def(0))
+			} else if operand.Opcode() == llvm.IntToPtr {
+				itop := ninstr.Func().NewInstr(op.IntToPtr, trans.translateType(operand.Type()))
+				ninstr.Block().InsertInstr(ninstr.Index(), itop)
+				trans.translateOperands(operand, itop)
+				ninstr.InsertArg(-1, itop.Def(0))
 			} else {
-				fmt.Println(operand.Opcode())
 				fmt.Println(operand.Opcode())
 				fmt.Println(ntyp)
 				instr.Dump()

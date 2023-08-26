@@ -18,7 +18,7 @@ func (ctx *Types) IntegerType(bits int) Type {
 }
 
 func (ctx *Types) IntegerWordType() Type {
-	return Integer(sizes.WordSize())
+	return Integer(sizes.WordSize() * sizes.MinAddressableBits())
 }
 
 func (ctx *Types) FunctionType(results []Type, params []Type, isVarArg bool) Type {

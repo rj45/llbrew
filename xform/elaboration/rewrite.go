@@ -63,5 +63,18 @@ func rewrite(it ir.Iter) {
 			it.Update(op.If, instr.Type(), v0)
 			break
 		}
+	case op.IntToPtr:
+		for {
+			var a *ir.Value
+			if instr.NumArgs() != 1 {
+				break
+			}
+			a = instr.Arg(0)
+			if !(a.Type == types.IntegerWordType()) {
+				break
+			}
+			it.ReplaceWith(a)
+			break
+		}
 	}
 }

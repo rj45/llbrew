@@ -51,6 +51,7 @@ type Compiler struct {
 
 	Run      bool
 	RunTrace bool
+	RunWR    io.Writer
 
 	ctx       llvm.Context
 	mod       llvm.Module
@@ -138,7 +139,10 @@ func (c *Compiler) Compile(filename string) error {
 	}
 
 	if c.Run {
-		return emu.Run(c.BinFile, c.RunTrace)
+		if c.RunWR == nil {
+			c.RunWR = os.Stdout
+		}
+		return emu.Run(c.BinFile, c.RunTrace, c.RunWR)
 	}
 
 	return nil

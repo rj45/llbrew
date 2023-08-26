@@ -7,3 +7,5 @@
 
 // fix if instructions without a corresponding compare
 (op.If a) && !a.Op().IsCompare() => (op.If (op.NotEqual a 0))
+
+(op.IntToPtr a) && a.Type == types.IntegerWordType() => a

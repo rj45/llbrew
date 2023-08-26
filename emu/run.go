@@ -1,13 +1,14 @@
 package emu
 
 import (
+	"io"
 	"os"
 	"os/exec"
 
 	"slices"
 )
 
-func Run(binfile string, trace bool) error {
+func Run(binfile string, trace bool, wr io.Writer) error {
 	args := slices.Clone(emuArgs)
 
 	args = append(args, binfile)
@@ -17,7 +18,7 @@ func Run(binfile string, trace bool) error {
 
 	runcmd := exec.Command(emuCmd, args...)
 	runcmd.Stderr = os.Stderr
-	runcmd.Stdout = os.Stdout
+	runcmd.Stdout = wr
 	runcmd.Stdin = os.Stdin
 	return runcmd.Run()
 }

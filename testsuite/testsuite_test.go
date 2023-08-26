@@ -87,24 +87,37 @@ func TestUnoptimized(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			outbuf := &bytes.Buffer{}
+
 			c := compile.Compiler{
 				OptSize:  0,
 				OptSpeed: 0,
 				Run:      true,
+				RunWR:    outbuf,
 			}
 
 			err := c.Compile(tc.filename)
+
+			// translate \r\n escape codes into \n
+			buf := bytes.ReplaceAll(outbuf.Bytes(), []byte("\r\x1bD"), []byte("\n"))
+
+			resultstr := string(bytes.TrimSpace(buf))
+
 			if err != nil {
-				if e, ok := err.(*exec.ExitError); ok {
+				if e, ok := err.(*exec.ExitError); ok && resultstr == "" {
 					if fmt.Sprintf("%d", e.ExitCode()) != tc.result {
 						t.Errorf("Expected run to exit with %s but got %d", tc.result, e.ExitCode())
 					}
 				} else {
-					t.Fatal(err)
+					t.Error(err)
 				}
 			}
-			if err == nil && tc.result != "0" {
-				t.Fatal("expecting a non-zero result!")
+			if err == nil && resultstr == "" && tc.result != "0" {
+				t.Error("expecting a non-zero result!")
+			}
+
+			if resultstr != "" && resultstr != tc.result {
+				t.Errorf("Outputs did not match! expecting <<<<\n%q\n>>>> to match <<<<\n%q\n>>>>", resultstr, tc.result)
 			}
 		})
 	}

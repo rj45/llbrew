@@ -164,7 +164,7 @@ func (ra *RegAlloc) assignRegisters() error {
 		regIndex := int(node.colour - 1)
 
 		if regIndex >= len(ra.regList) {
-			return ErrTooManyRequiredRegisters
+			return fmt.Errorf("%w: %d registers required in %s", ErrTooManyRequiredRegisters, ra.iGraph.maxColour, ra.fn.Name)
 		}
 
 		if val.InReg() && val.Reg() != reg.None && val.Reg() != ra.regList[regIndex] {
